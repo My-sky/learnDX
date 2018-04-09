@@ -36,27 +36,27 @@ protected:
 	void CalculateFrameStats();
 
 protected:
-	HINSTANCE m_hAppInst;                //实例句柄
-	HWND m_hMainWnd;                     //主窗口句柄
-	bool m_isAppPaused;
-	bool m_isMinimized;
-	bool m_isMaximized;
-	bool m_isResizing;
-	UINT m_4xMsaaQuality;                //4重采样质量
+	HINSTANCE hAppInst;                //实例句柄
+	HWND hMainWnd;                     //主窗口句柄
+	bool bIsAppPaused;
+	bool bIsMinimized;
+	bool bIsMaximized;
+	bool bIsResizing;
+	UINT m4xMsaaQuality;                //4重采样质量
 
-	GameTimer m_timer;                   //计时器
-	D3D_DRIVER_TYPE m_d3dDriverType;     //驱动类型
-	ID3D11Device *m_pD3dDevice;          //设备
-	ID3D11DeviceContext *m_pImmediateContext;  //设备上下文
-	IDXGISwapChain  *m_pSwapChain;       //交换链
-	ID3D11Texture2D *m_pDepthStencilBuffer;   //深度模板缓冲
-	ID3D11RenderTargetView *m_pRenderTargetView;  //渲染目标视图
-	ID3D11DepthStencilView *m_pDepthStencilView;  //深度模板缓冲视图
-	D3D11_VIEWPORT m_screenViewPort;      //视口
+	GameTimer mTimer;                   //计时器
+	D3D_DRIVER_TYPE md3dDriverType;     //驱动类型
+	ID3D11Device *pd3dDevice;          //设备
+	ID3D11DeviceContext *pImmediateContext;  //设备上下文
+	IDXGISwapChain  *pSwapChain;       //交换链
+	ID3D11Texture2D *pDepthStencilBuffer;   //深度模板缓冲
+	ID3D11RenderTargetView *pRenderTargetView;  //渲染目标视图
+	ID3D11DepthStencilView *pDepthStencilView;  //深度模板缓冲视图
+	D3D11_VIEWPORT mScreenViewPort;      //视口
 
-	std::wstring m_mainWndCaption;      //窗口标题
-	int m_clientWidth;
-	int m_clientHeight;
-	bool m_isEnable4xMsaa;              //是否支持4重采样
+	std::wstring mMainWndCaption;      //窗口标题
+	int mClientWidth;
+	int mClientHeight;
+	bool bIsEnable4xMsaa;              //是否支持4重采样
 };
 #endif

@@ -13,63 +13,63 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 D3DApp::D3DApp(HINSTANCE hInstance) :
-	m_hAppInst(hInstance),
-	m_mainWndCaption(L"D3D11 Application"),
-	m_d3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
-	m_clientHeight(600),
-	m_clientWidth(800),
-	m_isEnable4xMsaa(false),
-	m_hMainWnd(NULL),
-	m_isAppPaused(false),
-	m_isMaximized(false),
-	m_isMinimized(false),
-	m_isResizing(false),
-	m_4xMsaaQuality(0),
+	hAppInst(hInstance),
+	mMainWndCaption(L"D3D11 Application"),
+	md3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
+	mClientHeight(600),
+	mClientWidth(800),
+	bIsEnable4xMsaa(false),
+	hMainWnd(NULL),
+	bIsAppPaused(false),
+	bIsMaximized(false),
+	bIsMinimized(false),
+	bIsResizing(false),
+	m4xMsaaQuality(0),
 
-	m_pD3dDevice(NULL),
-	m_pImmediateContext(NULL),
-	m_pSwapChain(NULL),
-	m_pRenderTargetView(NULL),
-	m_pDepthStencilBuffer(NULL)
+	pd3dDevice(NULL),
+	pImmediateContext(NULL),
+	pSwapChain(NULL),
+	pRenderTargetView(NULL),
+	pDepthStencilBuffer(NULL)
 {
-	ZeroMemory(&m_screenViewPort, sizeof(D3D11_VIEWPORT));
+	ZeroMemory(&mScreenViewPort, sizeof(D3D11_VIEWPORT));
 	g_d3dApp = this;
 }
 
 D3DApp::~D3DApp()
 {
-	ReleaseCOM(m_pRenderTargetView);
-	ReleaseCOM(m_pDepthStencilBuffer);
-	ReleaseCOM(m_pSwapChain);
-	ReleaseCOM(m_pDepthStencilView);
+	ReleaseCOM(pRenderTargetView);
+	ReleaseCOM(pDepthStencilBuffer);
+	ReleaseCOM(pSwapChain);
+	ReleaseCOM(pDepthStencilView);
 
-	if (m_pImmediateContext)
-		m_pImmediateContext->ClearState();
+	if (pImmediateContext)
+		pImmediateContext->ClearState();
 
-	ReleaseCOM(m_pImmediateContext);
-	ReleaseCOM(m_pD3dDevice);
+	ReleaseCOM(pImmediateContext);
+	ReleaseCOM(pd3dDevice);
 }
 
 HINSTANCE D3DApp::AppInst() const
 {
-	return m_hAppInst;
+	return hAppInst;
 }
 
 HWND D3DApp::MainWnd() const
 {
-	return m_hMainWnd;
+	return hMainWnd;
 }
 
 float D3DApp::AspectRatio() const
 {
-	return static_cast<float>(m_clientWidth / m_clientHeight);
+	return static_cast<float>(mClientWidth / mClientHeight);
 }
 
 int D3DApp::Run()
 {
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
-	m_timer.Reset();
+	mTimer.Reset();
 
 	while (msg.message != WM_QUIT)
 	{
@@ -80,11 +80,11 @@ int D3DApp::Run()
 		}
 		else
 		{
-			m_timer.Tick();
-			if (!m_isAppPaused)
+			mTimer.Tick();
+			if (!bIsAppPaused)
 			{
 				CalculateFrameStats();
-				UpdateScene(m_timer.DeltaTime());
+				UpdateScene(mTimer.DeltaTime());
 				DrawScene();
 			}
 			else
@@ -107,34 +107,34 @@ bool D3DApp::Init()
 
 void D3DApp::OnResize()
 {
-	assert(m_pImmediateContext);
-	assert(m_pD3dDevice);
-	assert(m_pSwapChain);
+	assert(pImmediateContext);
+	assert(pd3dDevice);
+	assert(pSwapChain);
 
 	//release old views
-	ReleaseCOM(m_pRenderTargetView);
-	ReleaseCOM(m_pDepthStencilView);
-	ReleaseCOM(m_pDepthStencilBuffer);
+	ReleaseCOM(pRenderTargetView);
+	ReleaseCOM(pDepthStencilView);
+	ReleaseCOM(pDepthStencilBuffer);
 
-	HR(m_pSwapChain->ResizeBuffers(1, m_clientWidth, m_clientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
+	HR(pSwapChain->ResizeBuffers(1, mClientWidth, mClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
 	ID3D11Texture2D *backBuffer;
-	HR(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer)));
-	HR(m_pD3dDevice->CreateRenderTargetView(backBuffer, 0, &m_pRenderTargetView));
+	HR(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer)));
+	HR(pd3dDevice->CreateRenderTargetView(backBuffer, 0, &pRenderTargetView));
 	ReleaseCOM(backBuffer);
 
 	//create depth/stencil buffer and view
 	D3D11_TEXTURE2D_DESC depthStencilDecs;
-	depthStencilDecs.Width     = m_clientWidth;
-	depthStencilDecs.Height    = m_clientHeight;
+	depthStencilDecs.Width     = mClientWidth;
+	depthStencilDecs.Height    = mClientHeight;
 	depthStencilDecs.MipLevels = 1;
 	depthStencilDecs.ArraySize = 1;
 	depthStencilDecs.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	//whether use 4x multisample
-	if (m_isEnable4xMsaa)
+	if (bIsEnable4xMsaa)
 	{
 		depthStencilDecs.SampleDesc.Count = 4;
-		depthStencilDecs.SampleDesc.Quality = m_4xMsaaQuality - 1;
+		depthStencilDecs.SampleDesc.Quality = m4xMsaaQuality - 1;
 	}
 	else
 	{
@@ -147,21 +147,21 @@ void D3DApp::OnResize()
 	depthStencilDecs.CPUAccessFlags = 0;
 	depthStencilDecs.MiscFlags = 0;
 
-	HR(m_pD3dDevice->CreateTexture2D(&depthStencilDecs, 0, &m_pDepthStencilBuffer));
-	HR(m_pD3dDevice->CreateDepthStencilView(m_pDepthStencilBuffer,0, &m_pDepthStencilView));
+	HR(pd3dDevice->CreateTexture2D(&depthStencilDecs, 0, &pDepthStencilBuffer));
+	HR(pd3dDevice->CreateDepthStencilView(pDepthStencilBuffer,0, &pDepthStencilView));
 
 	//bind the new render target view and depth/stencil view to the pipeline
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+	pImmediateContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
 
 	//set viewport
-	m_screenViewPort.TopLeftX = 0;
-	m_screenViewPort.TopLeftY = 0;
-	m_screenViewPort.Width = m_clientWidth;
-	m_screenViewPort.Height = m_clientHeight;
-	m_screenViewPort.MaxDepth = 1.0f;
-	m_screenViewPort.MinDepth = 0.0f;
+	mScreenViewPort.TopLeftX = 0;
+	mScreenViewPort.TopLeftY = 0;
+	mScreenViewPort.Width = mClientWidth;
+	mScreenViewPort.Height = mClientHeight;
+	mScreenViewPort.MaxDepth = 1.0f;
+	mScreenViewPort.MinDepth = 0.0f;
 
-	m_pImmediateContext->RSSetViewports(1, &m_screenViewPort);
+	pImmediateContext->RSSetViewports(1, &mScreenViewPort);
 }
 
 LRESULT D3DApp::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)//wParam一般存放与消息有关的常量值，窗口或控件的句柄；lParam存放指针的地址
@@ -172,52 +172,52 @@ LRESULT D3DApp::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)//wPar
 	case WM_ACTIVATE:
 		if (LOWORD(wParam) == WA_INACTIVE)
 		{
-			m_isAppPaused = true;
-			m_timer.Stop();
+			bIsAppPaused = true;
+			mTimer.Stop();
 		}
 		else
 		{
-			m_isAppPaused = false;
-			m_timer.Start();
+			bIsAppPaused = false;
+			mTimer.Start();
 		}
 		return 0;
 
 		//resize the window
 	case WM_SIZE:
-		m_clientWidth  = LOWORD(lParam);
-		m_clientHeight = HIWORD(lParam);
-		if (m_pD3dDevice)
+		mClientWidth  = LOWORD(lParam);
+		mClientHeight = HIWORD(lParam);
+		if (pd3dDevice)
 		{
 			if (wParam == SIZE_MINIMIZED)//minimize the window
 			{
-				m_isAppPaused = true;
-				m_isMinimized = true;
-				m_isMaximized = true;
+				bIsAppPaused = true;
+				bIsMinimized = true;
+				bIsMaximized = true;
 			}
 			else if (wParam == SIZE_MAXIMIZED)//maximize the window
 			{
-				m_isAppPaused = false;
-				m_isMinimized = false;
-				m_isMaximized = true;
+				bIsAppPaused = false;
+				bIsMinimized = false;
+				bIsMaximized = true;
 				OnResize();
 			}
 			else if (wParam == SIZE_RESTORED)//resize the window
 			{
-				if (m_isMinimized)
+				if (bIsMinimized)
 				{
-					m_isAppPaused = false;
-					m_isMinimized = false;
+					bIsAppPaused = false;
+					bIsMinimized = false;
 					OnResize();
 				}
-				else if (m_isMaximized)
+				else if (bIsMaximized)
 				{
-					m_isAppPaused = false;
-					m_isMaximized = false;
+					bIsAppPaused = false;
+					bIsMaximized = false;
 					OnResize();
 				}
 
 				//call the OnResize() when user resized the window
-				else if (m_isResizing)
+				else if (bIsResizing)
 				{
 
 				}
@@ -230,16 +230,16 @@ LRESULT D3DApp::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)//wPar
 
 		//resize the window with dragging the window
 	case WM_ENTERSIZEMOVE:
-		m_isAppPaused = true;
-		m_isResizing = true;
-		m_timer.Stop();
+		bIsAppPaused = true;
+		bIsResizing = true;
+		mTimer.Stop();
 		return 0;
 
 		//user resized the window
 	case WM_EXITSIZEMOVE:
-		m_isAppPaused = false;
-		m_isResizing = false;
-		m_timer.Start();
+		bIsAppPaused = false;
+		bIsResizing = false;
+		mTimer.Start();
 		OnResize();
 		return 0;
 
@@ -284,7 +284,7 @@ bool D3DApp::InitMainWindow()
 	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(NULL_BRUSH));
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
-	wc.hInstance = m_hAppInst;
+	wc.hInstance = hAppInst;
 	wc.lpfnWndProc = MainWndProc;
 	wc.lpszClassName = L"D3DWndClassName";
 	wc.lpszMenuName = NULL;
@@ -295,21 +295,21 @@ bool D3DApp::InitMainWindow()
          return false;
    }
 
-    RECT rect{ 0, 0, m_clientWidth, m_clientHeight };
+    RECT rect{ 0, 0, mClientWidth, mClientHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
     int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
 
-	m_hMainWnd = CreateWindow(L"D3DWndClassName", m_mainWndCaption.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-         width, height, NULL, NULL, m_hAppInst, 0);
-    if (!m_hMainWnd)
+	hMainWnd = CreateWindow(L"D3DWndClassName", mMainWndCaption.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+         width, height, NULL, NULL, hAppInst, 0);
+    if (!hMainWnd)
     {
         MessageBox(0, L"CreateWindow Failed", 0, 0);
          return 0;
      }
 
-    ShowWindow(m_hMainWnd, SW_SHOW);
-    UpdateWindow(m_hMainWnd);
+    ShowWindow(hMainWnd, SW_SHOW);
+    UpdateWindow(hMainWnd);
 
     return true;
 
@@ -324,14 +324,14 @@ bool D3DApp::InitDirect3D()
 	D3D_FEATURE_LEVEL featureLevel;
 	HRESULT hr = D3D11CreateDevice(
 		0,//default adapter
-		m_d3dDriverType,
+		md3dDriverType,
 		0,
 		createDeviceFlags,
 		0, 0,
 		D3D11_SDK_VERSION,
-		&m_pD3dDevice,
+		&pd3dDevice,
 		&featureLevel,
-		&m_pImmediateContext
+		&pImmediateContext
 	);
 	if (FAILED(hr))
 	{
@@ -346,14 +346,14 @@ bool D3DApp::InitDirect3D()
 	}
 
 	//check 4x msaa quality support
-	HR(m_pD3dDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality));
-	assert(m_4xMsaaQuality > 0);
+	HR(pd3dDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality));
+	assert(m4xMsaaQuality > 0);
 
 	//
 	//fill out the swapchain description
     DXGI_SWAP_CHAIN_DESC sd;
-    sd.BufferDesc.Width = m_clientWidth;
-    sd.BufferDesc.Height = m_clientHeight;
+    sd.BufferDesc.Width = mClientWidth;
+    sd.BufferDesc.Height = mClientHeight;
     sd.BufferDesc.RefreshRate.Numerator = 60;
     sd.BufferDesc.RefreshRate.Denominator = 1;
     sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -361,10 +361,10 @@ bool D3DApp::InitDirect3D()
     sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
      
 	//check the 4x multisample
-    if (m_isEnable4xMsaa)
+    if (bIsEnable4xMsaa)
      {
          sd.SampleDesc.Count = 4;
-         sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+         sd.SampleDesc.Quality = m4xMsaaQuality - 1;
      }
     else
      {
@@ -374,14 +374,14 @@ bool D3DApp::InitDirect3D()
 
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd.BufferCount = 1;
-    sd.OutputWindow = m_hMainWnd;
+    sd.OutputWindow = hMainWnd;
     sd.Windowed = true;
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
 	//create the swapchain ,we need IDXGIFactory
 	IDXGIDevice *pDxgiDevice = 0;
-	HR(m_pD3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&pDxgiDevice)));
+	HR(pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&pDxgiDevice)));
 
 	IDXGIAdapter *pDxgiAdapter = 0;
 	HR(pDxgiDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(&pDxgiAdapter)));
@@ -389,7 +389,7 @@ bool D3DApp::InitDirect3D()
 	IDXGIFactory *pDxgiFactory = 0;
 	HR(pDxgiAdapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&pDxgiFactory)));
 
-	HR(pDxgiFactory->CreateSwapChain(m_pD3dDevice, &sd, &m_pSwapChain));
+	HR(pDxgiFactory->CreateSwapChain(pd3dDevice, &sd, &pSwapChain));
 
 	ReleaseCOM(pDxgiDevice);
 	ReleaseCOM(pDxgiAdapter);
@@ -408,16 +408,16 @@ void D3DApp::CalculateFrameStats()
 
 	frameCnt++;
 
-	if ((m_timer.TotalTime() - timeElapsed) >= 1.0f)
+	if ((mTimer.TotalTime() - timeElapsed) >= 1.0f)
 	{
 		float fps = static_cast<float>(frameCnt);
 		float mspf = 1000.f / fps;
 
 		std::wostringstream outs;
 		outs.precision(6);//display 6 bit of float 
-		outs << m_mainWndCaption << L"   " << L"FPS:" << fps << L"   "
+		outs << mMainWndCaption << L"   " << L"FPS:" << fps << L"   "
 			<< L"Frame Time: " << mspf << L"  (ms)";
-		SetWindowText(m_hMainWnd, outs.str().c_str());
+		SetWindowText(hMainWnd, outs.str().c_str());
 
 		frameCnt = 0;
 		timeElapsed += 1.0f;
