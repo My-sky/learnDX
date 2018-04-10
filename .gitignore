@@ -1,0 +1,7 @@
+#debug folder
+ Debug/*
+ 
+#D3D11 demos code
+ d3d11CodeSet1/*
+ d3d11CodeSet2/*
+ d3d11CodeSet3/*
