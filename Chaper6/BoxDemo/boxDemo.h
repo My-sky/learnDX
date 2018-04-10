@@ -1,9 +1,10 @@
 #ifndef BOXDEMO_H
 #define BOXDEMO_H
 
+#include "d3dx11effect.h"
 #include "D3DApp.h"
 #include "mathHelper.h"
-#include "d3dx11effect.h"
+
 
 struct Vertex
 {

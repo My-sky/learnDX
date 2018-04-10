@@ -3,7 +3,7 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
 #if defined(DEBUG)|defined(_DEBUG)
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
 	Box theApp(hInstance);
@@ -223,7 +223,7 @@ void Box::CreateFX()
 {
 	DWORD shaderFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
-	shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
+	//shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
 #endif
 	ID3D10Blob* pCompiledShader = 0;
 	ID3D10Blob* pCompilationMsgs = 0;

@@ -27,11 +27,11 @@
     <ClCompile Include="..\..\common\GameTimer.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="boxDemo.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\mathHelper.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="boxDemo.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
