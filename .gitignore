@@ -33,7 +33,7 @@
 *.app
 
 #db
-*.db
+*.VC.db
 
 #debug folder
 debug/
