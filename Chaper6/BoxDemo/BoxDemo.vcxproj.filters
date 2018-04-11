@@ -55,8 +55,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\color.fx">
+    <CustomBuild Include="FX\color.fx">
       <Filter>FX</Filter>
-    </None>
+    </CustomBuild>
   </ItemGroup>
 </Project>

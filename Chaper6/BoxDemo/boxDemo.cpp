@@ -1,4 +1,6 @@
 #include "boxDemo.h"
+#include <fstream>
+#include <vector>
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
@@ -227,22 +229,36 @@ void Box::CreateFX()
 #endif
 	ID3D10Blob* pCompiledShader = 0;
 	ID3D10Blob* pCompilationMsgs = 0;
-	HRESULT hr = D3DX11CompileFromFile(L"FX/color.fx", 0, 0, 0, "fx_5_0", shaderFlags, 0, 0, &pCompiledShader, &pCompilationMsgs, 0);
-	//compilationMsgs store errors or warnings
-	if (pCompilationMsgs != 0)
-	{
-		MessageBoxA(0, (char*)pCompilationMsgs->GetBufferPointer(), 0, 0);
-		ReleaseCOM(pCompilationMsgs);
-	}
 
-	//check other errors
-	if (FAILED(hr))
-	{
-		DXTrace(__FILE__, (DWORD)__LINE__, hr, L"D3DX11CompileFromFile", true);
-	}
+	//Compile at runtime
+	//HRESULT hr = D3DX11CompileFromFile(L"FX/color.fx", 0, 0, 0, "fx_5_0", shaderFlags, 0, 0, &pCompiledShader, &pCompilationMsgs, 0);
+	////compilationMsgs store errors or warnings
+	//if (pCompilationMsgs != 0)
+	//{
+	//	MessageBoxA(0, (char*)pCompilationMsgs->GetBufferPointer(), 0, 0);
+	//	ReleaseCOM(pCompilationMsgs);
+	//}
+
+	////check other errors
+	//if (FAILED(hr))
+	//{
+	//	DXTrace(__FILE__, (DWORD)__LINE__, hr, L"D3DX11CompileFromFile", true);
+	//}
+
+	//compile at build 
+	std::ifstream fin("..\\shaders\\color.fxo", std::ios::binary);
+
+	fin.seekg(0, std::ios_base::end);
+	int size = (int)fin.tellg();
+	fin.seekg(0, std::ios_base::beg);
+	std::vector<char> vCompiledShader(size);
+
+	fin.read(&vCompiledShader[0], size);
+	fin.close();
+
 	HR(D3DX11CreateEffectFromMemory(
-		pCompiledShader->GetBufferPointer(),
-		pCompiledShader->GetBufferSize(),
+		&vCompiledShader[0],
+		size,
 		0, pd3dDevice, &pFX));
 
 	//Release compiled shader

@@ -166,9 +166,11 @@
     <ClInclude Include="boxDemo.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\color.fx">
+    <CustomBuild Include="FX\color.fx">
       <FileType>Document</FileType>
-    </None>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo ..\shaders\%(Filename).fxo %(FullPath)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\shaders\%(Filename).fxo;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
