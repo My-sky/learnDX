@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Prerequisites
 *.d
 
@@ -36,3 +37,12 @@
 
 #debug folder
 debug/
+=======
+#debug folder
+ Debug/
+ 
+#D3D11 demos code
+ d3d11CodeSet1/
+ d3d11CodeSet2/
+ d3d11CodeSet3/
+>>>>>>> 39085bc8d5c8bc8963ef7d4ca7a1c61b49f2f4c9
