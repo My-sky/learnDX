@@ -39,6 +39,9 @@
 
 #debug folder
 Debug/
+
+#.vs folder
+.vs/
 =======
 #debug folder
  Debug/
