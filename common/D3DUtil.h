@@ -8,6 +8,8 @@
 #include <DxErr.h>
 #include <cassert>
 
+#include <vector>
+
 //¼ì²âd3d errors 
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef HR
