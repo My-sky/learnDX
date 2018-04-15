@@ -38,7 +38,7 @@ public:
 	};
 
 	//Create a box mesh
-	void CreateBox(float width, float height, float depth, MeshData& meshData);
+	void CreateBox(float width, float height, float depth, MeshData& meshData) {};
 
 	//Create a grid mesh
 	void CreateGrid(float width, float depth, UINT m, UINT n, MeshData& meshData);
