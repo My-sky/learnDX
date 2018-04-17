@@ -1,9 +1,11 @@
-//generator some model mesh(box,grid,sphere,cylinder)
+//generator some model mesh(Hill,grid,sphere,cylinder)
 
 #ifndef MESHGENERATOR_H
 #define MESHGENERATOR_H
 
+#ifndef D3DUTIL_H
 #include "D3DUtil.h"
+#endif
 
 class MeshGenerator
 {
@@ -37,7 +39,7 @@ public:
 
 	};
 
-	//Create a box mesh
+	//Create a Hill mesh
 	void CreateBox(float width, float height, float depth, MeshData& meshData) {};
 
 	//Create a grid mesh
