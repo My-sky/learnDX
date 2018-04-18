@@ -3,9 +3,9 @@
 #ifndef MESHGENERATOR_H
 #define MESHGENERATOR_H
 
-#ifndef D3DUTIL_H
+
 #include "D3DUtil.h"
-#endif
+
 
 class MeshGenerator
 {

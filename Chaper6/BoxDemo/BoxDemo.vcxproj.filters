@@ -33,6 +33,9 @@
     <ClCompile Include="boxDemo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\MeshGenerator.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\D3DApp.h">
@@ -51,6 +54,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\mathHelper.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\MeshGenerator.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

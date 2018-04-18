@@ -3,10 +3,10 @@
 
 #include"D3DApp.h"
 #include"d3dx11effect.h"
-#include"MeshGenerator.h"
 #include"mathHelper.h"
+#include "MeshGenerator.h"
 
-struct Vertex
+struct CommonVertex
 {
 	XMFLOAT3 pos;
 	XMFLOAT4 color;

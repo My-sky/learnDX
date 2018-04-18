@@ -16,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 
 Hill::Hill(HINSTANCE hInstance)
 	:D3DApp(hInstance), pHillVB(0), pHillIB(0), pFX(0), pTech(0), pfxWorldViewProject(0), pInputLayout(0),mGridIndexCount(0),
-	mThea(1.5f*MathHelper::Pi), mPhi(0.25f*MathHelper::Pi), mRadius(5.0f)
+	mThea(1.5f*MathHelper::Pi), mPhi(0.1f*MathHelper::Pi), mRadius(200.0f)
 {
 	mMainWndCaption = L"Hill Demo";
 
@@ -82,7 +82,7 @@ void Hill::DrawScene()
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(pInputLayout);
 	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(CommonVertex);
 	UINT offset = 0;
 	pImmediateContext->IASetVertexBuffers(0, 1, &pHillVB, &stride, &offset);
 	pImmediateContext->IASetIndexBuffer(pHillIB, DXGI_FORMAT_R32_UINT, 0);
@@ -127,10 +127,8 @@ void Hill::OnMouseMove(WPARAM btnState, int x, int y)
 	if ((btnState & MK_LBUTTON) != 0)
 	{
 		//Make each pixel correspond to a quarter of a degree.
-		float dx = XMConvertToRadians(
-			0.25f*static_cast<float>(x - mLastMousePos.x));
-		float dy = XMConvertToRadians(
-			0.25f*static_cast<float>(y - mLastMousePos.y));
+		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - mLastMousePos.x));
+		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - mLastMousePos.y));
 
 		//Update angles based on input to orbit camera around Hill.
 		mThea += dx;
@@ -141,14 +139,14 @@ void Hill::OnMouseMove(WPARAM btnState, int x, int y)
 	else if ((btnState & MK_RBUTTON) != 0)
 	{
 		//Make each pixel correspond to 0.005 unit in the scene.
-		float dx = 0.005f*static_cast<float>(x - mLastMousePos.x);
-		float dy = 0.005f*static_cast<float>(y - mLastMousePos.y);
+		float dx = 0.2f*static_cast<float>(x - mLastMousePos.x);
+		float dy = 0.2f*static_cast<float>(y - mLastMousePos.y);
 
 		//Update the camera radius based on input.
 		mRadius += dx - dy;
 
 		//Restric the radius
-		mRadius = MathHelper::Clamp(mRadius, 3.0f, 15.0f);
+		mRadius = MathHelper::Clamp(mRadius, 50.0f, 500.0f);
 	}
 
 	mLastMousePos.x = x;
@@ -164,55 +162,72 @@ void Hill::CreateGeometryBuffers()
 {
 	//create vertex buffer
 	MeshGenerator::MeshData grid;
+	MeshGenerator meshGen;
+
+	meshGen.CreateGrid(160.f, 160.f, 50, 50, grid);
+
+	//the count of index
+	mGridIndexCount = grid.Indices.size();
+
+	//apply the height function to each vertex
+	//allocate  color for each vertex
+	std::vector<CommonVertex> vertices(grid.Vertices.size());
+	for (int i = 0; i < grid.Vertices.size(); i++)
+	{
+		XMFLOAT3 p = grid.Vertices[i].Position;
+		p.y = GetHeight(p.x, p.z);
+
+		vertices[i].pos = p;
+		//allocate color base on the height
+		if (p.y < -10.f)
+		{
+			//sandy beach color
+			vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
+		}
+		else if(p.y < 5.f)
+		{
+			//light yellow-green
+			vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+		}
+		else if (p.y < 12.f)
+		{
+			//dark yellow-green
+			vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
+		}
+		else if (p.y < 20.f)
+		{
+			//dark brown
+			vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
+		}
+		else
+		{
+			//white
+			vertices[i].color = XMFLOAT4(1.f, 1.f, 1.f, 1.0f);
+		}
+	}
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * 8;
+	vbd.ByteWidth = sizeof(CommonVertex) * grid.Vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = vertex;
+	vinitData.pSysMem = &vertices[0];
 	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pHillVB));
 
 	//create the index buffer
-	UINT indices[] =
-	{
-		//front face
-		0,1,2,
-		0,2,3,
-
-		//back face
-		4,6,5,
-		4,7,6,
-
-		//left face
-		4,5,1,
-		4,1,0,
-
-		//right face
-		3,2,6,
-		3,6,7,
-
-		//top face
-		1,5,6,
-		1,6,2,
-
-		//bottom face
-		4,0,3,
-		4,3,7
-	};
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * 36;
+	ibd.ByteWidth = sizeof(UINT) * mGridIndexCount;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = indices;
+	iinitData.pSysMem = &grid.Indices[0];
 	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
 }
 
@@ -241,7 +256,7 @@ void Hill::CreateFX()
 	//}
 
 	//compile at build 
-	std::ifstream fin("..\\shaders\\color.fxo", std::ios::binary);
+	std::ifstream fin("..\\shaders\\hillcolor.fxo", std::ios::binary);
 
 	fin.seekg(0, std::ios_base::end);
 	int size = (int)fin.tellg();

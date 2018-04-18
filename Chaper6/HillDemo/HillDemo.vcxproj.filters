@@ -60,4 +60,9 @@
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="FX\hillcolor.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>

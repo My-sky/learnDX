@@ -155,6 +155,7 @@
     <ClCompile Include="..\..\common\D3DApp.cpp" />
     <ClCompile Include="..\..\common\GameTimer.cpp" />
     <ClCompile Include="..\..\common\mathHelper.cpp" />
+    <ClCompile Include="..\..\common\MeshGenerator.cpp" />
     <ClCompile Include="boxDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="..\..\common\d3dx11effect.h" />
     <ClInclude Include="..\..\common\GameTimer.h" />
     <ClInclude Include="..\..\common\mathHelper.h" />
+    <ClInclude Include="..\..\common\MeshGenerator.h" />
     <ClInclude Include="boxDemo.h" />
   </ItemGroup>
   <ItemGroup>
