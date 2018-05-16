@@ -22,7 +22,7 @@
     <ProjectGuid>{2207CFA0-0F33-439D-9AD4-3D1BA1778774}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>HillDemo</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\D3DApp.cpp" />
     <ClCompile Include="..\..\common\GameTimer.cpp" />
+    <ClCompile Include="..\..\common\LightHelper.cpp" />
     <ClCompile Include="..\..\common\mathHelper.cpp" />
     <ClCompile Include="..\..\common\MeshGenerator.cpp" />
     <ClCompile Include="HillDemo.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\..\common\D3DUtil.h" />
     <ClInclude Include="..\..\common\d3dx11effect.h" />
     <ClInclude Include="..\..\common\GameTimer.h" />
+    <ClInclude Include="..\..\common\LightHelper.h" />
     <ClInclude Include="..\..\common\mathHelper.h" />
     <ClInclude Include="..\..\common\MeshGenerator.h" />
     <CustomBuild Include="FX\hillcolor.fx">

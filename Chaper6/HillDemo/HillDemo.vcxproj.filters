@@ -36,6 +36,9 @@
     <ClCompile Include="..\..\common\MeshGenerator.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\LightHelper.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HillDemo.h">
@@ -57,6 +60,9 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\MeshGenerator.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\LightHelper.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
