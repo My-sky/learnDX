@@ -21,7 +21,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HillDemo.cpp">
+    <ClCompile Include="LightingDemo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\D3DApp.cpp">
@@ -36,9 +36,15 @@
     <ClCompile Include="..\..\common\MeshGenerator.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\LightHelper.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\Waves.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HillDemo.h">
+    <ClInclude Include="LightingDemo.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\D3DApp.h">
@@ -59,9 +65,15 @@
     <ClInclude Include="..\..\common\MeshGenerator.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\LightHelper.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\Waves.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\hillcolor.fx">
+    <CustomBuild Include="FX\lighting.fx">
       <Filter>FX</Filter>
     </CustomBuild>
   </ItemGroup>
