@@ -15,18 +15,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 }
 
 Lighting::Lighting(HINSTANCE hInstance)
-	:D3DApp(hInstance), pLightingVB(0), pLightingIB(0), pFX(0), pTech(0), pfxWorldViewProject(0), pInputLayout(0),mGridIndexCount(0),
-	mThea(1.5f*MathHelper::Pi), mPhi(0.1f*MathHelper::Pi), mRadius(200.0f)
+	:D3DApp(hInstance), pHillVB(0), pHillIB(0),pWaveVB(0),pWaveIB(0),
+	pFX(0), pTech(0), pInputLayout(0),mGridIndexCount(0),
+	pfxWorld(0),pfxWorldInvTranspose(0),pfxEyePosW(0),pfxWorldViewProject(0),
+	pfxDirLight(0),pfxPointLight(0),pfxSpotLight(0),pfxMaterial(0),
+	mEyePosW(0.0f,0.0f,0.0f),mThea(1.5f*MathHelper::Pi), mPhi(0.1f*MathHelper::Pi), mRadius(80.0f)
 {
 	mMainWndCaption = L"Lighting Demo";
 
 	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, I);
+	XMStoreFloat4x4(&mHillWorld, I);
+	XMStoreFloat4x4(&mWaveWorld, I);
 	XMStoreFloat4x4(&mView, I);
 	XMStoreFloat4x4(&mProject, I);
 
+	XMMATRIX wavesOffset = XMMatrixTranslation(0.0f, -3.0f, 0.0f);
+	XMStoreFloat4x4(&mWaveWorld, wavesOffset);
+
 	mLastMousePos.x = 0.0;
 	mLastMousePos.y = 0.0;
+
+	//Directional Light
+	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+
 
 }
 

@@ -138,10 +138,34 @@ void Waves::Update(float dt)
 				float b = mCurrSolution[(i+1)*mNumCols + j].y;
 				mNormals[i*mNumCols + j].x = l - r;
 				mNormals[i*mNumCols + j].y = 2.0f*mSpatialStep;
-				mNormals[i*mNumCols + j].z = 
+				mNormals[i*mNumCols + j].z = b - t;
 
+				XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&mNormals[i*mNumCols + j]));
+				XMStoreFloat3(&mNormals[i*mNumCols + j], n);
+
+				//沿X轴方向的切线，Tx
+				mTangentX[i*mNumCols + j] = XMFLOAT3(2.0f*mSpatialStep, r - l, 0.0f);
+				XMVECTOR T = XMVector3Normalize(XMLoadFloat3(&mTangentX[i*mNumCols + j]));
+				XMStoreFloat3(&mTangentX[i*mNumCols + j], T);
 
 			}
 		}
 	}
+}
+
+void Waves::Disturb(UINT i, UINT j, float magnitude)
+{
+	//Don't disturb boundaries
+	assert(i > 1 && i < mNumRows - 2);
+	assert(j > 1 && j < mNumCols - 2);
+
+	float halfMag = 0.5f*magnitude;
+
+	//Disturb the ijth vertex height and its neighbors
+	mCurrSolution[i*mNumCols + j].y     += magnitude;
+	mCurrSolution[i*mNumCols + j+1].y   += halfMag;
+	mCurrSolution[i*mNumCols + j-1].y   += halfMag;
+	mCurrSolution[(i+1)*mNumCols + j].y += halfMag;
+	mCurrSolution[(i-1)*mNumCols + j].y += halfMag;
+
 }

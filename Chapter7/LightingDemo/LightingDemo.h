@@ -5,6 +5,8 @@
 #include "d3dx11effect.h"
 #include "mathHelper.h"
 #include "MeshGenerator.h"
+#include "Waves.h"
+#include "LightHelper.h"
 
 struct CommonVertex
 {
@@ -29,25 +31,48 @@ public:
 
 private:
 	float GetHeight(float x, float z) const;
-	void CreateGeometryBuffers();//vertex index
+	XMFLOAT3 GetNormal(float x, float y) const;
+	void CreateHillGeometryBuffers();//vertex index
+	void CreateWaveGeometryBuffers();//vertex index
 	void CreateFX();
 	void CreateLayout();
 
 private:
-	ID3D11Buffer* pLightingVB;
-	ID3D11Buffer* pLightingIB;
+	ID3D11Buffer* pHillVB;
+	ID3D11Buffer* pHillIB;
+
+	ID3D11Buffer* pWaveVB;
+	ID3D11Buffer* pWaveIB;
+
+	Waves mWaves;
+	DirectionalLight mDirLight;
+	PointLight mPointLight;
+	SpotLight mSpotLight;
+	Material mHillMat;
+	Material mWaveMat;
 
 	ID3DX11Effect* pFX;
 	ID3DX11EffectTechnique* pTech;//pFX释放的时候会释放
 	ID3DX11EffectMatrixVariable* pfxWorldViewProject;
+	ID3DX11EffectMatrixVariable* pfxWorld;
+	ID3DX11EffectMatrixVariable* pfxWorldInvTranspose;
+	ID3DX11EffectVectorVariable* pfxEyePosW;
+	ID3DX11EffectVariable* pfxDirLight;
+	ID3DX11EffectVariable* pfxPointLight;
+	ID3DX11EffectVariable* pfxSpotLight;
+	ID3DX11EffectVariable* pfxMaterial;
 
 	ID3D11InputLayout* pInputLayout;
 
 	UINT mGridIndexCount;
 
-	XMFLOAT4X4 mWorld;
+	XMFLOAT4X4 mHillWorld;
+	XMFLOAT4X4 mWaveWorld;
+
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProject;
+
+	XMFLOAT3 mEyePosW;
 
 	float mThea;
 	float mPhi;
