@@ -36,18 +36,44 @@ Lighting::Lighting(HINSTANCE hInstance)
 	mLastMousePos.y = 0.0;
 
 	//Directional Light
-	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-	mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	mDirLight.Ambient   = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	mDirLight.Diffuse   = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	mDirLight.Specular  = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	mDirLight.Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+
+	//Point light--position is changed every frame to animate in UpdateScene function
+	mPointLight.Ambient  = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	mPointLight.Diffuse  = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	mPointLight.Specular = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	mPointLight.Att      = XMFLOAT3(0.0f, 0.1f, 0.0f);
+	mPointLight.Range    = 25.0f;
+
+	// Spot light--position and direction changed every frame to animate in UpdateScene function.
+	mSpotLight.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	mSpotLight.Diffuse = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
+	mSpotLight.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mSpotLight.Att = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	mSpotLight.Spot = 96.0f;
+	mSpotLight.Range = 10000.0f;
+
+	mHillMat.Ambient = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+	mHillMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+	mHillMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+
+	mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+	mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+	mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
 
 
 }
 
 Lighting::~Lighting()
 {
-	ReleaseCOM(pLightingVB);
-	ReleaseCOM(pLightingIB);
+	ReleaseCOM(pHillVB);
+	ReleaseCOM(pHillIB);
+	ReleaseCOM(pWaveVB);
+	ReleaseCOM(pWaveIB);
+
 	ReleaseCOM(pFX);
 	ReleaseCOM(pInputLayout);
 }
@@ -56,7 +82,11 @@ bool Lighting::Init()
 {
 	if (!D3DApp::Init())
 		return false;
-	CreateGeometryBuffers();
+
+	mWaves.Init(160, 160, 1.0f, 0.03f, 3.25f, 0.4f);
+
+	CreateHillGeometryBuffers();
+	CreateWaveGeometryBuffers();
 	CreateFX();
 	CreateLayout();
 

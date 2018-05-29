@@ -49,7 +49,7 @@ private:
 	PointLight mPointLight;
 	SpotLight mSpotLight;
 	Material mHillMat;
-	Material mWaveMat;
+	Material mWavesMat;
 
 	ID3DX11Effect* pFX;
 	ID3DX11EffectTechnique* pTech;//pFX释放的时候会释放
