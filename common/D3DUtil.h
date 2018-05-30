@@ -43,6 +43,9 @@ namespace Colors
 	XMGLOBALCONST XMVECTORF32 cCyan    = { 0.0f,1.0f,1.0f,1.0f };
 	XMGLOBALCONST XMVECTORF32 cMagenta = { 1.0f,0.0f,1.0f,1.0f };
 		
+	XMGLOBALCONST XMVECTORF32 cSilver  = { 0.75f,0.75f,0.75f,1.0f };
+	XMGLOBALCONST XMVECTORF32 cLightSteelBlue = { 0.69f,0.77f,0.87f,1.0f };
+
 }
 
 #endif

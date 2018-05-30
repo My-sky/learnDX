@@ -11,7 +11,7 @@
 struct CommonVertex
 {
 	XMFLOAT3 pos;
-	XMFLOAT4 color;
+	XMFLOAT3 normal;
 };
 
 class Lighting :public D3DApp
@@ -41,8 +41,8 @@ private:
 	ID3D11Buffer* pHillVB;
 	ID3D11Buffer* pHillIB;
 
-	ID3D11Buffer* pWaveVB;
-	ID3D11Buffer* pWaveIB;
+	ID3D11Buffer* pWavesVB;
+	ID3D11Buffer* pWavesIB;
 
 	Waves mWaves;
 	DirectionalLight mDirLight;
