@@ -278,7 +278,18 @@ float Lighting::GetHeight(float x, float z) const
 	return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
 }
 
-void Lighting::CreateGeometryBuffers()
+XMFLOAT3 Lighting::GetNormal(float x, float z) const
+{
+	//n=(-df/dx,1,-df/dz)
+	XMFLOAT3 n(-0.03f*z*cosf(0.1f*x)-0.03f*cosf(0.1f*z),
+				1.0f,
+				-0.3f*sinf(0.1f*x) + 0.03f*x*sinf(0.1f*z));
+	XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
+	XMStoreFloat3(&n, unitNormal);
+	return n;
+}
+
+void Lighting::CreateHillGeometryBuffers()
 {
 	//create vertex buffer
 	MeshGenerator::MeshData grid;
@@ -298,32 +309,7 @@ void Lighting::CreateGeometryBuffers()
 		p.y = GetHeight(p.x, p.z);
 
 		vertices[i].pos = p;
-		//allocate color base on the height
-		if (p.y < -10.f)
-		{
-			//sandy beach color
-			vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
-		}
-		else if(p.y < 5.f)
-		{
-			//light yellow-green
-			vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-		}
-		else if (p.y < 12.f)
-		{
-			//dark yellow-green
-			vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
-		}
-		else if (p.y < 20.f)
-		{
-			//dark brown
-			vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
-		}
-		else
-		{
-			//white
-			vertices[i].color = XMFLOAT4(1.f, 1.f, 1.f, 1.0f);
-		}
+		vertices[i].normal = GetNormal(p.x, p.y);
 	}
 
 	D3D11_BUFFER_DESC vbd;
@@ -335,7 +321,7 @@ void Lighting::CreateGeometryBuffers()
 	vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
-	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pLightingVB));
+	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pHillVB));
 
 	//create the index buffer
 
@@ -348,8 +334,59 @@ void Lighting::CreateGeometryBuffers()
 	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &grid.Indices[0];
-	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pLightingIB));
+	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
 }
+
+void Lighting::CreateWaveGeometryBuffers()
+{
+	//create the vertex buffer.note that we allocate space only,as 
+	//we will be updating the data every time step of the simulation
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_DYNAMIC;
+	vbd.ByteWidth = sizeof(CommonVertex) * mWaves.VertexCount();
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vbd.MiscFlags = 0;
+	HR(pd3dDevice->CreateBuffer(&vbd, 0, &pWavesVB));
+
+	//create the index buffer.the index buffer is fixed,so we
+	//only need to create and set once
+
+	std::vector<UINT> indices(3 * mWaves.TriangleCount());
+
+	//Iterator over each quad
+	UINT m = mWaves.RowCount();
+	UINT n = mWaves.ColumnCount();
+	int k = 0;
+	for (UINT i = 0; i < m - 1; ++i)
+	{
+		for (UINT j = 0; j < n - 1; ++j)
+		{
+			indices[k]   = i*n + j;
+			indices[k + 1] = i*n + j + 1;
+			indices[k + 2] = (i+1)*n + j;
+
+			indices[k + 3] = (i+1)*n + j;
+			indices[k + 4] = i*n + j + 1;
+			indices[k + 5] = (i+1)*n + j + 1;
+
+			k += 6;
+		}
+	}
+
+	D3D11_BUFFER_DESC ibd;
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.ByteWidth = sizeof(UINT) * indices.size();
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+	ibd.MiscFlags = 0;
+	ibd.StructureByteStride = 0;
+	D3D11_SUBRESOURCE_DATA iinitData;
+	iinitData.pSysMem = &indices[0];
+	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
+}
+
 
 void Lighting::CreateFX()
 {
@@ -376,7 +413,7 @@ void Lighting::CreateFX()
 	//}
 
 	//compile at build 
-	std::ifstream fin("..\\shaders\\Lightingcolor.fxo", std::ios::binary);
+	std::ifstream fin("..\\shaders\\Lighting.fxo", std::ios::binary);
 
 	fin.seekg(0, std::ios_base::end);
 	int size = (int)fin.tellg();
@@ -394,9 +431,15 @@ void Lighting::CreateFX()
 	//Release compiled shader
 	ReleaseCOM(pCompiledShader);
 
-	pTech = pFX->GetTechniqueByName("ColorTech");
-	pfxWorldViewProject = pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
-
+	pTech					= pFX->GetTechniqueByName("ColorTech");
+	pfxWorldViewProject		= pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
+	pfxWorld				= pFX->GetVariableByName("gWorld")->AsMatrix();
+	pfxWorldInvTranspose	= pFX->GetVariableByName("gWorldInvTranspose")->AsMatrix();
+	pfxEyePosW				= pFX->GetVariableByName("gEyePosW")->AsVector();
+	pfxDirLight				= pFX->GetVariableByName("gDirLight");
+	pfxPointLight			= pFX->GetVariableByName("gPointLight");
+	pfxSpotLight			= pFX->GetVariableByName("gSpotLight");
+	pfxMaterial				= pFX->GetVariableByName("gMaterial");
 }
 
 void Lighting::CreateLayout()
@@ -405,7 +448,7 @@ void Lighting::CreateLayout()
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		{ "COLOR",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
+		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
 	};
 
 	//Create input layout
