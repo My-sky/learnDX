@@ -73,13 +73,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\lighting.fx">
+    <None Include="FX\lighting.fx">
       <Filter>FX</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\lightingHelper.fx">
+    </None>
+    <None Include="FX\lightingHelper.fx">
       <Filter>FX</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

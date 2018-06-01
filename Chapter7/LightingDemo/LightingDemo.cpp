@@ -413,7 +413,7 @@ void Lighting::CreateFX()
 	//}
 
 	//compile at build 
-	std::ifstream fin("..\\shaders\\Lighting.fxo", std::ios::binary);
+	std::ifstream fin("..\\shaders\\lighting.fxo", std::ios::binary);
 
 	fin.seekg(0, std::ios_base::end);
 	int size = (int)fin.tellg();
@@ -431,7 +431,7 @@ void Lighting::CreateFX()
 	//Release compiled shader
 	ReleaseCOM(pCompiledShader);
 
-	pTech					= pFX->GetTechniqueByName("ColorTech");
+	pTech					= pFX->GetTechniqueByName("LightTech");
 	pfxWorldViewProject		= pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
 	pfxWorld				= pFX->GetVariableByName("gWorld")->AsMatrix();
 	pfxWorldInvTranspose	= pFX->GetVariableByName("gWorldInvTranspose")->AsMatrix();

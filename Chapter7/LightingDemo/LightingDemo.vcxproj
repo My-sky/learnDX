@@ -167,16 +167,18 @@
     <ClInclude Include="..\..\common\LightHelper.h" />
     <ClInclude Include="..\..\common\mathHelper.h" />
     <ClInclude Include="..\..\common\MeshGenerator.h" />
-    <CustomBuild Include="FX\lighting.fx">
+    <None Include="FX\lighting.fx">
       <FileType>CppHeader</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo ..\shaders\%(Filename).fxo %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\shaders\%(Filename).fxo;%(Outputs)</Outputs>
-    </CustomBuild>
+    </None>
     <ClInclude Include="..\..\common\Waves.h" />
     <ClInclude Include="LightingDemo.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="FX\lightingHelper.fx" />
+    <None Include="FX\lightingHelper.fx">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
