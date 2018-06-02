@@ -22,7 +22,7 @@
     <ProjectGuid>{2207CFA0-0F33-439D-9AD4-3D1BA1778774}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LightingDemo</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\D3DApp.cpp" />
+    <ClCompile Include="..\..\common\d3dUtil.cpp" />
     <ClCompile Include="..\..\common\GameTimer.cpp" />
     <ClCompile Include="..\..\common\LightHelper.cpp" />
     <ClCompile Include="..\..\common\mathHelper.cpp" />
@@ -167,11 +168,11 @@
     <ClInclude Include="..\..\common\LightHelper.h" />
     <ClInclude Include="..\..\common\mathHelper.h" />
     <ClInclude Include="..\..\common\MeshGenerator.h" />
-    <None Include="FX\lighting.fx">
+    <CustomBuild Include="FX\lighting.fx">
       <FileType>CppHeader</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo ..\shaders\%(Filename).fxo %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\shaders\%(Filename).fxo;%(Outputs)</Outputs>
-    </None>
+    </CustomBuild>
     <ClInclude Include="..\..\common\Waves.h" />
     <ClInclude Include="LightingDemo.h" />
   </ItemGroup>

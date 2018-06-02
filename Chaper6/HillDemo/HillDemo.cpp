@@ -77,7 +77,7 @@ void Hill::UpdateScene(float dt)//update the view matrix ; the camera position
 void Hill::DrawScene()
 {
 	pImmediateContext->ClearRenderTargetView(pRenderTargetView,
-		reinterpret_cast<const float*>(&Colors::cBlue));
+		reinterpret_cast<const float*>(&Colors::Blue));
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(pInputLayout);
@@ -95,10 +95,23 @@ void Hill::DrawScene()
 
 	pfxWorldViewProject->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
+	ID3D11RasterizerState* mWireframeRS;
+	D3D11_RASTERIZER_DESC rsDesc;
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rsDesc.CullMode = D3D11_CULL_BACK;
+	rsDesc.FrontCounterClockwise = false;
+	rsDesc.DepthClipEnable = true;
+
+	HR(pd3dDevice->CreateRasterizerState(&rsDesc, &mWireframeRS));
+
 	D3DX11_TECHNIQUE_DESC techDesc;
 	pTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
+
+		pImmediateContext->RSSetState(mWireframeRS);
+
 		pTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
 
 		//36 indices for the Hill

@@ -42,6 +42,9 @@
     <ClCompile Include="..\..\common\Waves.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\d3dUtil.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LightingDemo.h">
@@ -73,11 +76,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\lighting.fx">
-      <Filter>FX</Filter>
-    </None>
     <None Include="FX\lightingHelper.fx">
       <Filter>FX</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="FX\lighting.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

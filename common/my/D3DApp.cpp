@@ -192,7 +192,7 @@ LRESULT D3DApp::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)//wPar
 			{
 				bIsAppPaused = true;
 				bIsMinimized = true;
-				bIsMaximized = false;
+				bIsMaximized = true;
 			}
 			else if (wParam == SIZE_MAXIMIZED)//maximize the window
 			{
@@ -227,7 +227,7 @@ LRESULT D3DApp::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)//wPar
 				}
 			}
 		}
-		return 0;
+
 		//resize the window with dragging the window
 	case WM_ENTERSIZEMOVE:
 		bIsAppPaused = true;
@@ -319,7 +319,7 @@ bool D3DApp::InitDirect3D()
 {
 	UINT createDeviceFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	createDeviceFlags = NULL;
 #endif
 	D3D_FEATURE_LEVEL featureLevel;
 	HRESULT hr = D3D11CreateDevice(
@@ -336,7 +336,7 @@ bool D3DApp::InitDirect3D()
 	if (FAILED(hr))
 	{
 		MessageBox(0, L"D3D11CreateDevice Failed", 0, 0);
-		return false;
+		return hr;
 	}
 
 	if (featureLevel != D3D_FEATURE_LEVEL_11_0)

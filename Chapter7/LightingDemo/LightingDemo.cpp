@@ -5,7 +5,7 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
 #if defined(DEBUG)|defined(_DEBUG)
-	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
 	Lighting theApp(hInstance);
@@ -161,7 +161,7 @@ void Lighting::UpdateScene(float dt)//update the view matrix ; the camera positi
 void Lighting::DrawScene()
 {
 	pImmediateContext->ClearRenderTargetView(pRenderTargetView,
-		reinterpret_cast<const float*>(&Colors::cLightSteelBlue));
+		reinterpret_cast<const float*>(&Colors::Blue));
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(pInputLayout);
@@ -174,7 +174,7 @@ void Lighting::DrawScene()
 	//constants
 	XMMATRIX view = XMLoadFloat4x4(&mView);
 	XMMATRIX project = XMLoadFloat4x4(&mProject);
-	XMMATRIX viewProj =  view *project;
+	//XMMATRIX viewProj =  view *project;
 
 	//set per frame constants
 	pfxDirLight->SetRawValue(&mDirLight, 0, sizeof(mDirLight));
@@ -183,6 +183,17 @@ void Lighting::DrawScene()
 	pfxEyePosW->SetRawValue(&mEyePosW, 0, sizeof(mEyePosW));
 
 	
+	//set state ,display the wireframe
+	/*ID3D11RasterizerState* mWireframeRS;
+	D3D11_RASTERIZER_DESC rsDesc;
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rsDesc.CullMode = D3D11_CULL_BACK;
+	rsDesc.FrontCounterClockwise = false;
+	rsDesc.DepthClipEnable = true;
+
+	HR(pd3dDevice->CreateRasterizerState(&rsDesc, &mWireframeRS));*/
+
 	D3DX11_TECHNIQUE_DESC techDesc;
 	pTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
@@ -201,6 +212,8 @@ void Lighting::DrawScene()
 		pfxWorldViewProject->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 		pfxMaterial->SetRawValue(&mHillMat, 0, sizeof(mHillMat));
 
+		//display the wireframe
+		//pImmediateContext->RSSetState(mWireframeRS);
 
 		pTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
 
@@ -281,7 +294,7 @@ float Lighting::GetHeight(float x, float z) const
 XMFLOAT3 Lighting::GetNormal(float x, float z) const
 {
 	//n=(-df/dx,1,-df/dz)
-	XMFLOAT3 n(-0.03f*z*cosf(0.1f*x)-0.03f*cosf(0.1f*z),
+	XMFLOAT3 n(-0.03f*z*cosf(0.1f*x)-0.3f*cosf(0.1f*z),
 				1.0f,
 				-0.3f*sinf(0.1f*x) + 0.03f*x*sinf(0.1f*z));
 	XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
@@ -309,7 +322,7 @@ void Lighting::CreateHillGeometryBuffers()
 		p.y = GetHeight(p.x, p.z);
 
 		vertices[i].pos = p;
-		vertices[i].normal = GetNormal(p.x, p.y);
+		vertices[i].normal = GetNormal(p.x, p.z);
 	}
 
 	D3D11_BUFFER_DESC vbd;
@@ -318,7 +331,6 @@ void Lighting::CreateHillGeometryBuffers()
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
 	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pHillVB));
@@ -331,7 +343,6 @@ void Lighting::CreateHillGeometryBuffers()
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &grid.Indices[0];
 	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
@@ -361,9 +372,9 @@ void Lighting::CreateWaveGeometryBuffers()
 	int k = 0;
 	for (UINT i = 0; i < m - 1; ++i)
 	{
-		for (UINT j = 0; j < n - 1; ++j)
+		for (DWORD j = 0; j < n - 1; ++j)
 		{
-			indices[k]   = i*n + j;
+			indices[k]     = i*n + j;
 			indices[k + 1] = i*n + j + 1;
 			indices[k + 2] = (i+1)*n + j;
 
@@ -381,37 +392,14 @@ void Lighting::CreateWaveGeometryBuffers()
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &indices[0];
-	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
+	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pWavesIB));
 }
 
 
 void Lighting::CreateFX()
 {
-	DWORD shaderFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-	//shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
-#endif
-	ID3D10Blob* pCompiledShader = 0;
-	ID3D10Blob* pCompilationMsgs = 0;
-
-	//Compile at runtime
-	//HRESULT hr = D3DX11CompileFromFile(L"FX/color.fx", 0, 0, 0, "fx_5_0", shaderFlags, 0, 0, &pCompiledShader, &pCompilationMsgs, 0);
-	////compilationMsgs store errors or warnings
-	//if (pCompilationMsgs != 0)
-	//{
-	//	MessageBoxA(0, (char*)pCompilationMsgs->GetBufferPointer(), 0, 0);
-	//	ReleaseCOM(pCompilationMsgs);
-	//}
-
-	////check other errors
-	//if (FAILED(hr))
-	//{
-	//	DXTrace(__FILE__, (DWORD)__LINE__, hr, L"D3DX11CompileFromFile", true);
-	//}
-
 	//compile at build 
 	std::ifstream fin("..\\shaders\\lighting.fxo", std::ios::binary);
 
@@ -427,9 +415,6 @@ void Lighting::CreateFX()
 		&vCompiledShader[0],
 		size,
 		0, pd3dDevice, &pFX));
-
-	//Release compiled shader
-	ReleaseCOM(pCompiledShader);
 
 	pTech					= pFX->GetTechniqueByName("LightTech");
 	pfxWorldViewProject		= pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
