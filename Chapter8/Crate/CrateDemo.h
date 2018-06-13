@@ -5,14 +5,9 @@
 #include "d3dx11effect.h"
 #include "mathHelper.h"
 #include "MeshGenerator.h"
-#include "Waves.h"
 #include "LightHelper.h"
-
-struct CommonVertex
-{
-	XMFLOAT3 pos;
-	XMFLOAT3 normal;
-};
+#include "Effects.h"
+#include "Vertex.h"
 
 class Crate :public D3DApp
 {
@@ -30,47 +25,27 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
-	float GetHeight(float x, float z) const;
-	XMFLOAT3 GetNormal(float x, float y) const;
-	void CreateHillGeometryBuffers();//vertex index
-	void CreateWaveGeometryBuffers();//vertex index
-	void CreateFX();
-	void CreateLayout();
+	void CreateGeometryBuffers();//vertex index
 
 private:
-	ID3D11Buffer* pHillVB;
-	ID3D11Buffer* pHillIB;
+	ID3D11Buffer* pBoxVB;
+	ID3D11Buffer* pBoxIB;
 
-	ID3D11Buffer* pWavesVB;
-	ID3D11Buffer* pWavesIB;
+	ID3D11ShaderResourceView* pDiffuseMapSRV;
+	ID3D11ShaderResourceView* pCompositeMapSRV;
 
-	Waves mWaves;
-	DirectionalLight mDirLight;
-	PointLight mPointLight;
-	SpotLight mSpotLight;
-	Material mHillMat;
-	Material mWavesMat;
+	DirectionalLight mDirLights[3];
+	Material mBoxMat;
 
-	ID3DX11Effect* pFX;
-	ID3DX11EffectTechnique* pTech;//pFX释放的时候会释放
-	ID3DX11EffectMatrixVariable* pfxWorldViewProject;
-	ID3DX11EffectMatrixVariable* pfxWorld;
-	ID3DX11EffectMatrixVariable* pfxWorldInvTranspose;
-	ID3DX11EffectVectorVariable* pfxEyePosW;
-	ID3DX11EffectVariable* pfxDirLight;
-	ID3DX11EffectVariable* pfxPointLight;
-	ID3DX11EffectVariable* pfxSpotLight;
-	ID3DX11EffectVariable* pfxMaterial;
-
-	ID3D11InputLayout* pInputLayout;
-
-	UINT mGridIndexCount;
-
-	XMFLOAT4X4 mHillWorld;
-	XMFLOAT4X4 mWaveWorld;
+	XMFLOAT4X4 mTexTransform;
+	XMFLOAT4X4 mBoxWorld;
 
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProject;
+
+	int	 mBoxVertexOffset;
+	UINT mBoxIndexOffset;
+	UINT mBoxIndexCount;
 
 	XMFLOAT3 mEyePosW;
 

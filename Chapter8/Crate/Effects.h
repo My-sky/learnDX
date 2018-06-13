@@ -32,8 +32,9 @@ public:
 	void SetTexTransform(CXMMATRIX M)					{ pTexTransform->SetMatrix(reinterpret_cast<const float*>(&M)); }
 	void SetEyePosW(const XMFLOAT3& V)					{ pEyePosW->SetRawValue(&V,0,sizeof(XMFLOAT3)); }
 	void SetDirLights(const DirectionalLight* lights)	{ pDirLights->SetRawValue(lights,0,3*sizeof(DirectionalLight)); }
-	void SetMaterial(const Material& mat)				{ pMat->SetRawValue(&mat,0,sizeof(Material); }
+	void SetMaterial(const Material& mat)				{ pMat->SetRawValue(&mat,0,sizeof(Material)); }
 	void SetDiffuseMap(ID3D11ShaderResourceView* tex)	{ pDiffuseMap->SetResource(tex); }
+	void SetCompositeMap(ID3D11ShaderResourceView* tex) { pCompositeMap->SetResource(tex); }
 
 
 
@@ -56,6 +57,7 @@ public:
 	ID3DX11EffectVariable*	pMat;
 
 	ID3DX11EffectShaderResourceVariable* pDiffuseMap;
+	ID3DX11EffectShaderResourceVariable* pCompositeMap;
 };
 #pragma endregion
 
@@ -66,7 +68,7 @@ public:
 	static void InitAll(ID3D11Device* device);
 	static void DestroyAll();
 
-	static BasicEffect* BasicFX;
+	static BasicEffect* pBasicFX;
 };
 #pragma endregion
 

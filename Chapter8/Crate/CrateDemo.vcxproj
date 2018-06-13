@@ -172,7 +172,7 @@
     <ClInclude Include="..\..\common\MeshGenerator.h" />
     <ClInclude Include="Effects.h" />
     <ClInclude Include="Vertex.h" />
-    <CustomBuild Include="FX\lighting.fx">
+    <CustomBuild Include="FX\Basic.fx">
       <FileType>CppHeader</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo ..\shaders\%(Filename).fxo %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\shaders\%(Filename).fxo;%(Outputs)</Outputs>

@@ -87,7 +87,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\lighting.fx">
+    <CustomBuild Include="FX\Basic.fx">
       <Filter>fx</Filter>
     </CustomBuild>
   </ItemGroup>
