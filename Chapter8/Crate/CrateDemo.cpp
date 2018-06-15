@@ -96,6 +96,21 @@ void Crate::UpdateScene(float dt)//update the view matrix ; the camera position
 
 	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, V);
+
+
+
+	//rotate the texture
+	float tempTime = mTimer.TotalTime();
+	float thea = tempTime*MathHelper::Pi;// / 30;//×ª»»³É»¡¶È
+	XMFLOAT4X4 mTrans(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.5f, -0.5f, 0.0f, 1.0f);
+	XMFLOAT4X4 mRotate(cos(thea), sin(thea), 0.0f, 0.0f, -sin(thea), cos(thea), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.0f, 1.0f);
+	XMFLOAT4X4 mScale(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+
+	XMMATRIX trans = XMLoadFloat4x4(&mTrans);
+	XMMATRIX rotate = XMLoadFloat4x4(&mRotate);
+	XMMATRIX texTrans = trans * rotate;//XMMatrixTranspose
+	XMStoreFloat4x4(&mTexTransform, texTrans);
+
 }
 
 void Crate::DrawScene()
