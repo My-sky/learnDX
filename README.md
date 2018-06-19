@@ -1,2 +1,0 @@
-# learnDX
-learn directX  knowledge
