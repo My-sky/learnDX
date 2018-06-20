@@ -1,0 +1,53 @@
+<<<<<<< HEAD
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+
+#db
+*.VC.db
+*.db
+
+#debug folder
+Debug/
+
+#.vs folder
+.vs/
+=======
+#debug folder
+ Debug/
+ 
+#D3D11 demos code
+ d3d11CodeSet1/
+ d3d11CodeSet2/
+ d3d11CodeSet3/
+>>>>>>> 39085bc8d5c8bc8963ef7d4ca7a1c61b49f2f4c9
