@@ -29,7 +29,34 @@ void RenderStates::InitAll(ID3D11Device* device)
 	HR(device->CreateRasterizerState(&noCullDesc, &pNoCullRS));
 
 	//AlphaToCoverageBS
+	D3D11_BLEND_DESC alphaToCoverageBS = { 0 };
+	alphaToCoverageBS.AlphaToCoverageEnable = true;
+	alphaToCoverageBS.IndependentBlendEnable = false;
+	alphaToCoverageBS.RenderTarget[0].BlendEnable = false;
+	alphaToCoverageBS.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	HR(device->CreateBlendState(&alphaToCoverageBS, &pAlphaToCoverageBS));
 
+	//TransparentBS
+	D3D11_BLEND_DESC transparentBS = { 0 };
+	transparentBS.AlphaToCoverageEnable = false;
+	transparentBS.IndependentBlendEnable = false;
 
+	transparentBS.RenderTarget[0].BlendEnable = true;
+	transparentBS.RenderTarget[0].SrcBlend				= D3D11_BLEND_SRC_ALPHA;
+	transparentBS.RenderTarget[0].DestBlend				= D3D11_BLEND_INV_SRC1_ALPHA;
+	transparentBS.RenderTarget[0].BlendOp				= D3D11_BLEND_OP_ADD;
+	transparentBS.RenderTarget[0].SrcBlendAlpha			= D3D11_BLEND_ONE;
+	transparentBS.RenderTarget[0].DestBlendAlpha		= D3D11_BLEND_ZERO;
+	transparentBS.RenderTarget[0].BlendOpAlpha			= D3D11_BLEND_OP_ADD;
+	transparentBS.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	HR(device->CreateBlendState(&transparentBS, &pTransparentBS));
 
+}
+
+void RenderStates::DestroyAll()
+{
+	ReleaseCOM(pWireframeRS);
+	ReleaseCOM(pNoCullRS);
+	ReleaseCOM(pAlphaToCoverageBS);
+	ReleaseCOM(pTransparentBS);
 }
