@@ -31,6 +31,9 @@ public:
 	void SetWorldInvTranspose(CXMMATRIX M)				{ pWorldInvTranspose->SetMatrix(reinterpret_cast<const float*>(&M)); }
 	void SetTexTransform(CXMMATRIX M)					{ pTexTransform->SetMatrix(reinterpret_cast<const float*>(&M)); }
 	void SetEyePosW(const XMFLOAT3& V)					{ pEyePosW->SetRawValue(&V,0,sizeof(XMFLOAT3)); }
+	void SetFogColor(const XMVECTOR& V)					{ pFogColor->SetFloatVector(reinterpret_cast<const float*>(&V)); }
+	void SetFogStart(float f)							{ pFogStart->SetFloat(f); }
+	void SetFogRange(float f)							{ pFogRange->SetFloat(f); }
 	void SetDirLights(const DirectionalLight* lights)	{ pDirLights->SetRawValue(lights,0,3*sizeof(DirectionalLight)); }
 	void SetMaterial(const Material& mat)				{ pMat->SetRawValue(&mat,0,sizeof(Material)); }
 	void SetDiffuseMap(ID3D11ShaderResourceView* tex)	{ pDiffuseMap->SetResource(tex); }
@@ -48,24 +51,24 @@ public:
 	ID3DX11EffectTechnique* pLight2TexTech;
 	ID3DX11EffectTechnique* pLight3TexTech;
 
-	ID3DX11EffectTechnique* Light0TexAlphaClipTech;
-	ID3DX11EffectTechnique* Light1TexAlphaClipTech;
-	ID3DX11EffectTechnique* Light2TexAlphaClipTech;
-	ID3DX11EffectTechnique* Light3TexAlphaClipTech;
+	ID3DX11EffectTechnique* pLight0TexAlphaClipTech;
+	ID3DX11EffectTechnique* pLight1TexAlphaClipTech;
+	ID3DX11EffectTechnique* pLight2TexAlphaClipTech;
+	ID3DX11EffectTechnique* pLight3TexAlphaClipTech;
 
-	ID3DX11EffectTechnique* Light1FogTech;
-	ID3DX11EffectTechnique* Light2FogTech;
-	ID3DX11EffectTechnique* Light3FogTech;
+	ID3DX11EffectTechnique* pLight1FogTech;
+	ID3DX11EffectTechnique* pLight2FogTech;
+	ID3DX11EffectTechnique* pLight3FogTech;
 
-	ID3DX11EffectTechnique* Light0TexFogTech;
-	ID3DX11EffectTechnique* Light1TexFogTech;
-	ID3DX11EffectTechnique* Light2TexFogTech;
-	ID3DX11EffectTechnique* Light3TexFogTech;
+	ID3DX11EffectTechnique* pLight0TexFogTech;
+	ID3DX11EffectTechnique* pLight1TexFogTech;
+	ID3DX11EffectTechnique* pLight2TexFogTech;
+	ID3DX11EffectTechnique* pLight3TexFogTech;
 
-	ID3DX11EffectTechnique* Light0TexAlphaClipFogTech;
-	ID3DX11EffectTechnique* Light1TexAlphaClipFogTech;
-	ID3DX11EffectTechnique* Light2TexAlphaClipFogTech;
-	ID3DX11EffectTechnique* Light3TexAlphaClipFogTech;
+	ID3DX11EffectTechnique* pLight0TexAlphaClipFogTech;
+	ID3DX11EffectTechnique* pLight1TexAlphaClipFogTech;
+	ID3DX11EffectTechnique* pLight2TexAlphaClipFogTech;
+	ID3DX11EffectTechnique* pLight3TexAlphaClipFogTech;
 
 	ID3DX11EffectMatrixVariable*	pWorldViewProject;
 	ID3DX11EffectMatrixVariable*	pWorld;

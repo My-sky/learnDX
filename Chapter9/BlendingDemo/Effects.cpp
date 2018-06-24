@@ -35,24 +35,24 @@ BasicEffect::BasicEffect(ID3D11Device* device, const std::wstring& filename)
 	pLight2TexTech	= pFX->GetTechniqueByName("Light2Tex");
 	pLight3TexTech	= pFX->GetTechniqueByName("Light3Tex");
 
-	Light0TexAlphaClipTech = pFX->GetTechniqueByName("Light0TexAlphaClip");
-	Light1TexAlphaClipTech = pFX->GetTechniqueByName("Light1TexAlphaClip");
-	Light2TexAlphaClipTech = pFX->GetTechniqueByName("Light2TexAlphaClip");
-	Light3TexAlphaClipTech = pFX->GetTechniqueByName("Light3TexAlphaClip");
+	pLight0TexAlphaClipTech = pFX->GetTechniqueByName("Light0TexAlphaClip");
+	pLight1TexAlphaClipTech = pFX->GetTechniqueByName("Light1TexAlphaClip");
+	pLight2TexAlphaClipTech = pFX->GetTechniqueByName("Light2TexAlphaClip");
+	pLight3TexAlphaClipTech = pFX->GetTechniqueByName("Light3TexAlphaClip");
 
-	Light1FogTech = pFX->GetTechniqueByName("Light1Fog");
-	Light2FogTech = pFX->GetTechniqueByName("Light2Fog");
-	Light3FogTech = pFX->GetTechniqueByName("Light3Fog");
+	pLight1FogTech = pFX->GetTechniqueByName("Light1Fog");
+	pLight2FogTech = pFX->GetTechniqueByName("Light2Fog");
+	pLight3FogTech = pFX->GetTechniqueByName("Light3Fog");
 
-	Light0TexFogTech = pFX->GetTechniqueByName("Light0TexFog");
-	Light1TexFogTech = pFX->GetTechniqueByName("Light1TexFog");
-	Light2TexFogTech = pFX->GetTechniqueByName("Light2TexFog");
-	Light3TexFogTech = pFX->GetTechniqueByName("Light3TexFog");
+	pLight0TexFogTech = pFX->GetTechniqueByName("Light0TexFog");
+	pLight1TexFogTech = pFX->GetTechniqueByName("Light1TexFog");
+	pLight2TexFogTech = pFX->GetTechniqueByName("Light2TexFog");
+	pLight3TexFogTech = pFX->GetTechniqueByName("Light3TexFog");
 
-	Light0TexAlphaClipFogTech = pFX->GetTechniqueByName("Light0TexAlphaClipFog");
-	Light1TexAlphaClipFogTech = pFX->GetTechniqueByName("Light1TexAlphaClipFog");
-	Light2TexAlphaClipFogTech = pFX->GetTechniqueByName("Light2TexAlphaClipFog");
-	Light3TexAlphaClipFogTech = pFX->GetTechniqueByName("Light3TexAlphaClipFog");
+	pLight0TexAlphaClipFogTech = pFX->GetTechniqueByName("Light0TexAlphaClipFog");
+	pLight1TexAlphaClipFogTech = pFX->GetTechniqueByName("Light1TexAlphaClipFog");
+	pLight2TexAlphaClipFogTech = pFX->GetTechniqueByName("Light2TexAlphaClipFog");
+	pLight3TexAlphaClipFogTech = pFX->GetTechniqueByName("Light3TexAlphaClipFog");
 
 	pWorldViewProject	= pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
 	pWorld				= pFX->GetVariableByName("gWorld")->AsMatrix();

@@ -35,6 +35,7 @@ private:
 	XMFLOAT3 GetNormal(float x, float y) const;
 	void CreateHillGeometryBuffers();//vertex index
 	void CreateWaveGeometryBuffers();//vertex index
+	void CreateBoxGeometryBuffers();
 
 private:
 	ID3D11Buffer* pHillVB;

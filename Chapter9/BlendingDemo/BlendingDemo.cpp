@@ -1,6 +1,7 @@
 #include "BlendingDemo.h"
 #include "Effects.h"
 #include "Vertex.h"
+#include "RenderStates.h"
 #include <fstream>
 
 
@@ -18,7 +19,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 
 Blending::Blending(HINSTANCE hInstance)
 	:D3DApp(hInstance), pHillVB(0), pHillIB(0),pWavesVB(0),pWavesIB(0),pBoxVB(0),pBoxIB(0),
-	mGridIndexCount(0),pGrassMapSRV(0),pWaveMapSRV(0),pBoxMapSRV(0),mWaveTexOffset(0.0f,0.0f),
+	mGridIndexCount(0),pGrassMapSRV(0),pWaveMapSRV(0),pBoxMapSRV(0),mWaveTexOffset(0.0f,0.0f),mRenderOptions(RenderOptions::TextureAndFog),
 	mEyePosW(0.0f,0.0f,0.0f),mThea(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(80.0f)
 {
 mMainWndCaption = L"Blending Demo";
@@ -85,6 +86,7 @@ Blending::~Blending()
 
 	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
+	RenderStates::DestroyAll();
 }
 
 bool Blending::Init()
@@ -96,14 +98,18 @@ bool Blending::Init()
 
 	Effects::InitAll(pd3dDevice);
 	InputLayouts::InitAll(pd3dDevice);
+	RenderStates::InitAll(pd3dDevice);
 
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
 		L"Textures/grass.dds", 0, 0, &pGrassMapSRV, 0));
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
 		L"Textures/water2.dds", 0, 0, &pWaveMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
+		L"Textures/WireFence.dds", 0, 0, &pBoxMapSRV, 0));
 
 	CreateHillGeometryBuffers();
 	CreateWaveGeometryBuffers();
+	CreateBoxGeometryBuffers();
 
 
 	return true;
@@ -179,12 +185,20 @@ void Blending::UpdateScene(float dt)//update the view matrix ; the camera positi
 	//same direction the camera is looking.In this way,it looks
 	//like we are holding a flashlight
 	XMStoreFloat4x4(&mWaveTexTransform, mWaveScale*mWaveTrans);
+
+	//Switch the render mode based in key input
+	if (GetAsyncKeyState('1') & 0x8000)
+		mRenderOptions = RenderOptions::Lighting;
+	if (GetAsyncKeyState('2') & 0x8000)
+		mRenderOptions = RenderOptions::Textures;
+	if (GetAsyncKeyState('3') & 0x8000)
+		mRenderOptions = RenderOptions::TextureAndFog;
 }
 
 void Blending::DrawScene()
 {
 	pImmediateContext->ClearRenderTargetView(pRenderTargetView,
-		reinterpret_cast<const float*>(&Colors::Blue));
+		reinterpret_cast<const float*>(&Colors::Silver));
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(InputLayouts::Basic32);
@@ -193,6 +207,7 @@ void Blending::DrawScene()
 	UINT stride = sizeof(Vertex::Basic32);
 	UINT offset = 0;
 	
+	float blendFactor[] = { 0.0f,0.0f,0.0f,0.0f };
 
 	//constants
 	XMMATRIX view = XMLoadFloat4x4(&mView);
@@ -202,6 +217,9 @@ void Blending::DrawScene()
 	//set per frame constants
 	Effects::pBasicFX->SetDirLights(mDirLights);
 	Effects::pBasicFX->SetEyePosW(mEyePosW);
+	Effects::pBasicFX->SetFogColor(Colors::Silver);
+	Effects::pBasicFX->SetFogStart(15.0f);
+	Effects::pBasicFX->SetFogRange(175.0f);
 
 	
 	//set state ,display the wireframe
@@ -214,13 +232,61 @@ void Blending::DrawScene()
 	rsDesc.DepthClipEnable = true;
 
 	HR(pd3dDevice->CreateRasterizerState(&rsDesc, &mWireframeRS));*/
-	ID3DX11EffectTechnique* activeTech = Effects::pBasicFX->pLight3TexTech;
+	ID3DX11EffectTechnique* boxTech=NULL;
+	ID3DX11EffectTechnique* hillAndWavesTech=NULL;
+
+	switch (mRenderOptions)
+	{
+	case RenderOptions::Lighting:
+		boxTech = Effects::pBasicFX->pLight3Tech;
+		hillAndWavesTech = Effects::pBasicFX->pLight3Tech;
+		break;
+	case RenderOptions::Textures:
+		boxTech = Effects::pBasicFX->pLight3TexAlphaClipTech;
+		hillAndWavesTech = Effects::pBasicFX->pLight3TexTech;
+		break;
+	case RenderOptions::TextureAndFog:
+		boxTech = Effects::pBasicFX->pLight3TexAlphaClipFogTech;
+		hillAndWavesTech = Effects::pBasicFX->pLight3TexFogTech;
+		break;
+	}
 
 	D3DX11_TECHNIQUE_DESC techDesc;
-	activeTech->GetDesc(&techDesc);
+
+	////draw box with clipping
+
+	boxTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		//draw the hills
+		pImmediateContext->IASetVertexBuffers(0, 1, &pBoxVB, &stride, &offset);
+		pImmediateContext->IASetIndexBuffer(pBoxIB, DXGI_FORMAT_R32_UINT, 0);
+
+		//Set per object constants
+		XMMATRIX world = XMLoadFloat4x4(&mBoxWorld);
+		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+		XMMATRIX worldViewProj = world*view*project;
+
+		Effects::pBasicFX->SetWorld(world);
+		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
+		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
+		Effects::pBasicFX->SetTexTransform(XMMatrixIdentity());
+		Effects::pBasicFX->SetMaterial(mBoxMat);
+		Effects::pBasicFX->SetDiffuseMap(pBoxMapSRV);
+
+		//display the wireframe
+		pImmediateContext->RSSetState(RenderStates::pNoCullRS);
+		boxTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
+		pImmediateContext->DrawIndexed(36, 0, 0);
+
+		pImmediateContext->RSSetState(0);
+	}
+
+	//draw hill and waves
+	hillAndWavesTech->GetDesc(&techDesc);
+	for(UINT i= 0;i<techDesc.Passes;i++)
+	{
+		//draw hill
 		pImmediateContext->IASetVertexBuffers(0, 1, &pHillVB, &stride, &offset);
 		pImmediateContext->IASetIndexBuffer(pHillIB, DXGI_FORMAT_R32_UINT, 0);
 
@@ -237,11 +303,7 @@ void Blending::DrawScene()
 		Effects::pBasicFX->SetDiffuseMap(pGrassMapSRV);
 
 		//display the wireframe
-		//pImmediateContext->RSSetState(mWireframeRS);
-
-		activeTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
-
-		//36 indices for the Wave
+		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
 		pImmediateContext->DrawIndexed(mGridIndexCount, 0, 0);
 
 		//draw the waves
@@ -260,9 +322,11 @@ void Blending::DrawScene()
 		Effects::pBasicFX->SetMaterial(mWavesMat);
 		Effects::pBasicFX->SetDiffuseMap(pWaveMapSRV);
 		
-
-		activeTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
+		pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor,0xffffffff);
+		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
 		pImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
+
+		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
 	}
 
 	HR(pSwapChain->Present(0, 0));
@@ -299,14 +363,14 @@ void Blending::OnMouseMove(WPARAM btnState, int x, int y)
 	else if ((btnState & MK_RBUTTON) != 0)
 	{
 		//Make each pixel correspond to 0.005 unit in the scene.
-		float dx = 0.2f*static_cast<float>(x - mLastMousePos.x);
-		float dy = 0.2f*static_cast<float>(y - mLastMousePos.y);
+		float dx = 0.1f*static_cast<float>(x - mLastMousePos.x);
+		float dy = 0.1f*static_cast<float>(y - mLastMousePos.y);
 
 		//Update the camera radius based on input.
 		mRadius += dx - dy;
 
 		//Restric the radius
-		mRadius = MathHelper::Clamp(mRadius, 50.0f, 500.0f);
+		mRadius = MathHelper::Clamp(mRadius, 20.0f, 500.0f);
 	}
 
 	mLastMousePos.x = x;
@@ -423,4 +487,44 @@ void Blending::CreateWaveGeometryBuffers()
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &indices[0];
 	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pWavesIB));
+}
+
+void Blending::CreateBoxGeometryBuffers()
+{
+	MeshGenerator::MeshData box;
+	MeshGenerator meshGen;
+
+	meshGen.CreateBox(1.f, 1.f, 1.0f, box);
+
+	//apply the height function to each vertex
+	//allocate  color for each vertex
+	std::vector<Vertex::Basic32> vertices(box.Vertices.size());
+	for (int i = 0; i < box.Vertices.size(); i++)
+	{
+		vertices[i].Pos = box.Vertices[i].Position;
+		vertices[i].Normal = box.Vertices[i].Normal;
+		vertices[i].Tex = box.Vertices[i].TexC;
+	}
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(Vertex::Basic32) * box.Vertices.size();
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA vinitData;
+	vinitData.pSysMem = &vertices[0];
+	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pBoxVB));
+
+	//create the index buffer
+
+	D3D11_BUFFER_DESC ibd;
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.ByteWidth = sizeof(UINT) * box.Indices.size();
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+	ibd.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA iinitData;
+	iinitData.pSysMem = &box.Indices[0];
+	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pBoxIB));
 }
