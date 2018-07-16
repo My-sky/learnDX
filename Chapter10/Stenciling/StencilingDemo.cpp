@@ -11,32 +11,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	Blending theApp(hInstance);
+	Stenciling theApp(hInstance);
 	if (!theApp.Init())
 		return 0;
 	return theApp.Run();
 }
 
-Blending::Blending(HINSTANCE hInstance)
-	:D3DApp(hInstance), pHillVB(0), pHillIB(0),pWavesVB(0),pWavesIB(0),pBoxVB(0),pBoxIB(0),
-	mGridIndexCount(0),pGrassMapSRV(0),pWaveMapSRV(0),pBoxMapSRV(0),mWaveTexOffset(0.0f,0.0f),mRenderOptions(RenderOptions::TextureAndFog),
-	mEyePosW(0.0f,0.0f,0.0f),mThea(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(80.0f)
+Stenciling::Stenciling(HINSTANCE hInstance)
+	:D3DApp(hInstance), pRoomVB(0),pSkullVB(0),pSkullIB(0),
+	mSkullIndexCount(0),pWallDiffuseMapSRV(0),pFloorDiffuseMapSRV(0),pMirrorDiffuseMapSRV(0),mRenderOptions(RenderOptions::TextureAndFog),
+	mSkullTranslation(0.0f,0.0f,-3.0f),mEyePosW(0.0f,0.0f,0.0f),mThea(1.24f*MathHelper::Pi), mPhi(0.42f*MathHelper::Pi), mRadius(12.0f)
 {
-mMainWndCaption = L"Blending Demo";
+mMainWndCaption = L"Stenciling Demo";
 bIsEnable4xMsaa = false;
 
 XMMATRIX I = XMMatrixIdentity();
-XMStoreFloat4x4(&mHillWorld, I);
-XMStoreFloat4x4(&mWaveWorld, I);
+XMStoreFloat4x4(&mRoomWorld, I);
 XMStoreFloat4x4(&mView, I);
 XMStoreFloat4x4(&mProject, I);
-
-XMMATRIX boxScale  = XMMatrixScaling(15.0f, 15.0f, 15.0f);
-XMMATRIX boxOffset = XMMatrixTranslation(8.0f, 5.0f, -15.0f);
-XMStoreFloat4x4(&mBoxWorld, boxScale*boxOffset);
-
-XMMATRIX grassTexScale = XMMatrixScaling(5.0f, 5.0f, 0.0f);
-XMStoreFloat4x4(&mGrassTexTransform, grassTexScale);
 
 mLastMousePos.x = 0.0;
 mLastMousePos.y = 0.0;
@@ -57,65 +49,58 @@ mDirLights[2].Diffuse = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 mDirLights[2].Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 mDirLights[2].Direction = XMFLOAT3(0.0f, -0.707f, -0.707f);
 
-mHillMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-mHillMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-mHillMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+mRoomMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+mRoomMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+mRoomMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
 
-mWavesMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-mWavesMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 32.0f);
+mSkullMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+mSkullMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+mSkullMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
 
-mBoxMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-mBoxMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-mBoxMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
+mMirrorMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+mMirrorMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
+mMirrorMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
 }
 
-Blending::~Blending()
+Stenciling::~Stenciling()
 {
 	pImmediateContext->ClearState();
-	ReleaseCOM(pHillVB);
-	ReleaseCOM(pHillIB);
-	ReleaseCOM(pWavesVB);
-	ReleaseCOM(pWavesIB);
-	ReleaseCOM(pBoxVB);
-	ReleaseCOM(pBoxIB);
+	ReleaseCOM(pRoomVB);
+	ReleaseCOM(pSkullVB);
+	ReleaseCOM(pSkullIB);
 
-	ReleaseCOM(pGrassMapSRV);
-	ReleaseCOM(pWaveMapSRV);
-	ReleaseCOM(pBoxMapSRV);
+	ReleaseCOM(pWallDiffuseMapSRV);
+	ReleaseCOM(pFloorDiffuseMapSRV);
+	ReleaseCOM(pMirrorDiffuseMapSRV);
 
 	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
 	RenderStates::DestroyAll();
 }
 
-bool Blending::Init()
+bool Stenciling::Init()
 {
 	if (!D3DApp::Init())
 		return false;
-
-	mWaves.Init(160, 160, 1.0f, 0.03f, 3.25f, 0.4f);
 
 	Effects::InitAll(pd3dDevice);
 	InputLayouts::InitAll(pd3dDevice);
 	RenderStates::InitAll(pd3dDevice);
 
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
-		L"Textures/grass.dds", 0, 0, &pGrassMapSRV, 0));
+		L"Textures/checkboard.dds", 0, 0, &pFloorDiffuseMapSRV, 0));
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
-		L"Textures/water2.dds", 0, 0, &pWaveMapSRV, 0));
+		L"Textures/brick01.dds", 0, 0, &pWallDiffuseMapSRV, 0));
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
-		L"Textures/WireFence.dds", 0, 0, &pBoxMapSRV, 0));
+		L"Textures/ice.dds", 0, 0, &pMirrorDiffuseMapSRV, 0));
 
-	CreateHillGeometryBuffers();
-	CreateWaveGeometryBuffers();
-	CreateBoxGeometryBuffers();
-
+	CreateRoomGeometryBuffers();
+	CreateSkullGeometryBuffers();
 
 	return true;
 }
 
-void Blending::OnResize()
+void Stenciling::OnResize()
 {
 	D3DApp::OnResize();
 
@@ -124,7 +109,7 @@ void Blending::OnResize()
 	XMStoreFloat4x4(&mProject, P);
 }
 
-void Blending::UpdateScene(float dt)//update the view matrix ; the camera position
+void Stenciling::UpdateScene(float dt)//update the view matrix ; the camera position
 {
 	//convert Spherical to Cartesian coordinates
 	float x = mRadius * sinf(mPhi) * cosf(mThea);
@@ -136,55 +121,11 @@ void Blending::UpdateScene(float dt)//update the view matrix ; the camera positi
 	//build view matrix
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
 	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, V);
 
-	//every quarter second,generate a random wave
-	static float t_base = 0.0f;
-	if ((mTimer.TotalTime() - t_base) >= 0.25f)
-	{
-		t_base += 0.25f;
-		DWORD i = 5 + rand() % (mWaves.RowCount() - 10);
-		DWORD j = 5 + rand() % (mWaves.ColumnCount() - 10);
-
-		float r = MathHelper::RandF(1.0f, 2.0f);
-		mWaves.Disturb(i, j, r);
-	}
-	mWaves.Update(dt);
-
-	//Update the wave vertex buffer with the new solution
-	D3D11_MAPPED_SUBRESOURCE mappedData;
-	HR(pImmediateContext->Map(pWavesVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
-
-	Vertex::Basic32* v = reinterpret_cast<Vertex::Basic32*>(mappedData.pData);
-	for (UINT i = 0; i < mWaves.VertexCount(); ++i)
-	{
-		v[i].Pos = mWaves[i];
-		v[i].Normal = mWaves.Normal(i);
-
-		//derive tex-coords in [0,1] from position
-		v[i].Tex.x = 0.5f + mWaves[i].x / mWaves.Width();
-		v[i].Tex.y = 0.5f - mWaves[i].z / mWaves.Depth();//z的方向向里为正
-	}
-
-	pImmediateContext->Unmap(pWavesVB, 0);
-
-	//animate the wave texture coordinates
-
-	XMMATRIX mWaveScale = XMMatrixScaling(5.f, 5.f, 0.f);
-
-	//Translate texture over time
-	mWaveTexOffset.x += 0.05f*dt;
-	mWaveTexOffset.y += 0.1f*dt;
-	XMMATRIX mWaveTrans = XMMatrixTranslation(mWaveTexOffset.x, mWaveTexOffset.y, 0.f);
-
-
-	//the spotlight takes on the camera position and is aimed in the 
-	//same direction the camera is looking.In this way,it looks
-	//like we are holding a flashlight
-	XMStoreFloat4x4(&mWaveTexTransform, mWaveScale*mWaveTrans);
 
 	//Switch the render mode based in key input
 	if (GetAsyncKeyState('1') & 0x8000)
@@ -193,9 +134,28 @@ void Blending::UpdateScene(float dt)//update the view matrix ; the camera positi
 		mRenderOptions = RenderOptions::Textures;
 	if (GetAsyncKeyState('3') & 0x8000)
 		mRenderOptions = RenderOptions::TextureAndFog;
+
+	//allow user to move skull
+	if (GetAsyncKeyState('A') & 0x8000)
+		mSkullTranslation.x -= 1.0f*dt;
+	if (GetAsyncKeyState('D') & 0x8000)
+		mSkullTranslation.x += 1.0f*dt;
+	if (GetAsyncKeyState('W') & 0x8000)
+		mSkullTranslation.z += 1.0f*dt;
+	if (GetAsyncKeyState('S') & 0x8000)
+		mSkullTranslation.z -= 1.0f*dt;
+
+	//set the downline of the move
+	mSkullTranslation.y = MathHelper::Max(mSkullTranslation.y, 0.0f);
+
+	//update the translation matrix
+	XMMATRIX skullRotate = XMMatrixRotationY(0.5f*MathHelper::Pi);
+	XMMATRIX skullScale = XMMatrixScaling(0.45f, 0.45f, 0.45f);
+	XMMATRIX skullOffset = XMMatrixTranslation(mSkullTranslation.x, mSkullTranslation.y, mSkullTranslation.z);
+	XMStoreFloat4x4(&mSkullWorld, skullRotate*skullScale*skullOffset);
 }
 
-void Blending::DrawScene()
+void Stenciling::DrawScene()
 {
 	pImmediateContext->ClearRenderTargetView(pRenderTargetView,
 		reinterpret_cast<const float*>(&Colors::Silver));
@@ -218,8 +178,8 @@ void Blending::DrawScene()
 	Effects::pBasicFX->SetDirLights(mDirLights);
 	Effects::pBasicFX->SetEyePosW(mEyePosW);
 	Effects::pBasicFX->SetFogColor(Colors::Silver);
-	Effects::pBasicFX->SetFogStart(15.0f);
-	Effects::pBasicFX->SetFogRange(175.0f);
+	Effects::pBasicFX->SetFogStart(2.0f);
+	Effects::pBasicFX->SetFogRange(40.0f);
 
 	
 	//set state ,display the wireframe
@@ -232,38 +192,37 @@ void Blending::DrawScene()
 	rsDesc.DepthClipEnable = true;
 
 	HR(pd3dDevice->CreateRasterizerState(&rsDesc, &mWireframeRS));*/
-	ID3DX11EffectTechnique* boxTech=NULL;
-	ID3DX11EffectTechnique* hillAndWavesTech=NULL;
+	ID3DX11EffectTechnique* activeTech=NULL;
+	ID3DX11EffectTechnique* activeSkullTech=NULL;
 
 	switch (mRenderOptions)
 	{
 	case RenderOptions::Lighting:
-		boxTech = Effects::pBasicFX->pLight3Tech;
-		hillAndWavesTech = Effects::pBasicFX->pLight3Tech;
+		activeTech = Effects::pBasicFX->pLight3Tech;
+		activeSkullTech = Effects::pBasicFX->pLight3Tech;
 		break;
 	case RenderOptions::Textures:
-		boxTech = Effects::pBasicFX->pLight3TexAlphaClipTech;
-		hillAndWavesTech = Effects::pBasicFX->pLight3TexTech;
+		activeTech = Effects::pBasicFX->pLight3TexTech;
+		activeSkullTech = Effects::pBasicFX->pLight3Tech;
 		break;
 	case RenderOptions::TextureAndFog:
-		boxTech = Effects::pBasicFX->pLight3TexAlphaClipFogTech;
-		hillAndWavesTech = Effects::pBasicFX->pLight3TexFogTech;
+		activeTech = Effects::pBasicFX->pLight3TexFogTech;
+		activeSkullTech = Effects::pBasicFX->pLight3FogTech;
 		break;
 	}
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 
-	////draw box with clipping
+	////draw the floor and wall to the back buffer
 
-	boxTech->GetDesc(&techDesc);
+	activeTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		//draw the hills
-		pImmediateContext->IASetVertexBuffers(0, 1, &pBoxVB, &stride, &offset);
-		pImmediateContext->IASetIndexBuffer(pBoxIB, DXGI_FORMAT_R32_UINT, 0);
+		pImmediateContext->IASetVertexBuffers(0, 1, &pRoomVB, &stride, &offset);
 
 		//Set per object constants
-		XMMATRIX world = XMLoadFloat4x4(&mBoxWorld);
+		XMMATRIX world = XMLoadFloat4x4(&mRoomWorld);
 		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
 		XMMATRIX worldViewProj = world*view*project;
 
@@ -271,60 +230,143 @@ void Blending::DrawScene()
 		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
 		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
 		Effects::pBasicFX->SetTexTransform(XMMatrixIdentity());
-		Effects::pBasicFX->SetMaterial(mBoxMat);
-		Effects::pBasicFX->SetDiffuseMap(pBoxMapSRV);
+		Effects::pBasicFX->SetMaterial(mRoomMat);
 
-		//display the wireframe
-		pImmediateContext->RSSetState(RenderStates::pNoCullRS);
-		boxTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
-		pImmediateContext->DrawIndexed(36, 0, 0);
+		//floor
+		Effects::pBasicFX->SetDiffuseMap(pFloorDiffuseMapSRV);
+		activeTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
+		pImmediateContext->Draw(6, 0);
 
-		pImmediateContext->RSSetState(0);
+		//wall
+		Effects::pBasicFX->SetDiffuseMap(pWallDiffuseMapSRV);
+		activeTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
+		pImmediateContext->Draw(18, 6);
+
 	}
 
-	//draw hill and waves
-	hillAndWavesTech->GetDesc(&techDesc);
+	//draw skull
+	activeSkullTech->GetDesc(&techDesc);
 	for(UINT i= 0;i<techDesc.Passes;i++)
 	{
 		//draw hill
-		pImmediateContext->IASetVertexBuffers(0, 1, &pHillVB, &stride, &offset);
-		pImmediateContext->IASetIndexBuffer(pHillIB, DXGI_FORMAT_R32_UINT, 0);
+		pImmediateContext->IASetVertexBuffers(0, 1, &pSkullVB, &stride, &offset);
+		pImmediateContext->IASetIndexBuffer(pSkullIB, DXGI_FORMAT_R32_UINT, 0);
 
 		//Set per object constants
-		XMMATRIX world = XMLoadFloat4x4(&mHillWorld);
+		XMMATRIX world = XMLoadFloat4x4(&mSkullWorld);
 		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
 		XMMATRIX worldViewProj = world*view*project;
 
 		Effects::pBasicFX->SetWorld(world);
 		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
 		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
-		Effects::pBasicFX->SetTexTransform(XMLoadFloat4x4(&mGrassTexTransform));
-		Effects::pBasicFX->SetMaterial(mHillMat);
-		Effects::pBasicFX->SetDiffuseMap(pGrassMapSRV);
+		Effects::pBasicFX->SetMaterial(mSkullMat);
 
 		//display the wireframe
-		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
-		pImmediateContext->DrawIndexed(mGridIndexCount, 0, 0);
+		activeSkullTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
+		pImmediateContext->DrawIndexed(mSkullIndexCount, 0, 0);
+	}
 
-		//draw the waves
-		pImmediateContext->IASetVertexBuffers(0, 1, &pWavesVB, &stride, &offset);
-		pImmediateContext->IASetIndexBuffer(pWavesIB, DXGI_FORMAT_R32_UINT, 0);
+	//draw the mirror to the stencil buffer
+	activeTech->GetDesc(&techDesc);
+	for (UINT i = 0; i < techDesc.Passes; i++)
+	{
+		pImmediateContext->IASetVertexBuffers(0, 1, &pRoomVB, &stride, &offset);
 
-		//set per object constants
-		world = XMLoadFloat4x4(&mWaveWorld);
-		worldInvTranspose = MathHelper::InverseTranspose(world);
-		worldViewProj = world*view*project;
+		//Set per object constants
+		XMMATRIX world = XMLoadFloat4x4(&mRoomWorld);
+		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+		XMMATRIX worldViewProj = world*view*project;
 
 		Effects::pBasicFX->SetWorld(world);
 		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
 		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
-		Effects::pBasicFX->SetTexTransform(XMLoadFloat4x4(&mWaveTexTransform));
-		Effects::pBasicFX->SetMaterial(mWavesMat);
-		Effects::pBasicFX->SetDiffuseMap(pWaveMapSRV);
-		
-		pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor,0xffffffff);
-		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
-		pImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
+		Effects::pBasicFX->SetTexTransform(XMMatrixIdentity());
+
+		//do not write to the render target
+		pImmediateContext->OMSetBlendState(RenderStates::pNoRenderTargetWritesBS, blendFactor, 0xffffffff);
+		//write the stencil buffer
+		pImmediateContext->OMSetDepthStencilState(RenderStates::pMarkMirrorDSS, 1);
+		activeTech->GetPassByIndex(i)->Apply(0,pImmediateContext);
+		pImmediateContext->Draw(6, 24);
+
+		pImmediateContext->OMSetDepthStencilState(0, 0);
+		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+	}
+
+	//draw the skull reflection.
+	activeSkullTech->GetDesc(&techDesc);
+	for (UINT i = 0; i<techDesc.Passes; i++)
+	{
+		//draw hill
+		pImmediateContext->IASetVertexBuffers(0, 1, &pSkullVB, &stride, &offset);
+		pImmediateContext->IASetIndexBuffer(pSkullIB, DXGI_FORMAT_R32_UINT, 0);
+
+		//Set per object constants
+		XMVECTOR mirrorPlane = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+		XMMATRIX R = XMMatrixReflect(mirrorPlane);
+		XMMATRIX world = XMLoadFloat4x4(&mSkullWorld)*R;
+		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+		XMMATRIX worldViewProj = world*view*project;
+
+		Effects::pBasicFX->SetWorld(world);
+		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
+		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
+		Effects::pBasicFX->SetMaterial(mSkullMat);
+
+		XMFLOAT3 oldLightDirections[3];
+		for (UINT i = 0; i < 3; i++)
+		{
+			oldLightDirections[i] = mDirLights[i].Direction;
+
+			XMVECTOR lightDir = XMLoadFloat3(&mDirLights[i].Direction);
+			XMVECTOR reflectedLightDir = XMVector3TransformNormal(lightDir, R);
+			XMStoreFloat3(&mDirLights[i].Direction, reflectedLightDir);
+		}
+
+		Effects::pBasicFX->SetDirLights(mDirLights);
+
+		//cull clockwise triangle for reflection
+		pImmediateContext->RSSetState(RenderStates::pCullClockwiseRS);
+
+		pImmediateContext->OMSetDepthStencilState(RenderStates::pDrawReflectionDSS, 1);
+		activeSkullTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
+		pImmediateContext->DrawIndexed(mSkullIndexCount, 0, 0);
+
+		//reset states
+		pImmediateContext->RSSetState(0);
+		pImmediateContext->OMSetDepthStencilState(0, 0);
+
+		//restore light directions
+		for (UINT i = 0; i < 3; i++)
+		{
+			mDirLights[i].Direction = oldLightDirections[i];
+		}
+		Effects::pBasicFX->SetDirLights(mDirLights);
+	}
+
+	////draw the mirror to the back buffer as usual 
+	activeTech->GetDesc(&techDesc);
+	for (UINT i = 0; i < techDesc.Passes; i++)
+	{
+		pImmediateContext->IASetVertexBuffers(0, 1, &pRoomVB, &stride, &offset);
+
+		//Set per object constants
+		XMMATRIX world = XMLoadFloat4x4(&mRoomWorld);
+		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+		XMMATRIX worldViewProj = world*view*project;
+
+		Effects::pBasicFX->SetWorld(world);
+		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
+		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
+		Effects::pBasicFX->SetTexTransform(XMMatrixIdentity());
+		Effects::pBasicFX->SetMaterial(mMirrorMat);
+		Effects::pBasicFX->SetDiffuseMap(pMirrorDiffuseMapSRV);
+
+		//do not write to the render target
+		pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor, 0xffffffff);
+		activeTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
+		pImmediateContext->Draw(6, 24);
 
 		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
 	}
@@ -333,7 +375,7 @@ void Blending::DrawScene()
 
 }
 
-void Blending::OnMouseDown(WPARAM btnState, int x, int y)
+void Stenciling::OnMouseDown(WPARAM btnState, int x, int y)
 {
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
@@ -341,12 +383,12 @@ void Blending::OnMouseDown(WPARAM btnState, int x, int y)
 	SetCapture(hMainWnd);
 }
 
-void Blending::OnMouseUp(WPARAM	btnState, int x, int y)
+void Stenciling::OnMouseUp(WPARAM	btnState, int x, int y)
 {
 	ReleaseCapture();
 }
 
-void Blending::OnMouseMove(WPARAM btnState, int x, int y)
+void Stenciling::OnMouseMove(WPARAM btnState, int x, int y)
 {
 	if ((btnState & MK_LBUTTON) != 0)
 	{
@@ -370,113 +412,126 @@ void Blending::OnMouseMove(WPARAM btnState, int x, int y)
 		mRadius += dx - dy;
 
 		//Restric the radius
-		mRadius = MathHelper::Clamp(mRadius, 20.0f, 500.0f);
+		mRadius = MathHelper::Clamp(mRadius, 3.0f, 50.0f);
 	}
 
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
 }
 
-float Blending::GetHeight(float x, float z) const
-{
-	return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
-}
-
-XMFLOAT3 Blending::GetNormal(float x, float z) const
-{
-	//n=(-df/dx,1,-df/dz)
-	XMFLOAT3 n(-0.03f*z*cosf(0.1f*x)-0.3f*cosf(0.1f*z),
-				1.0f,
-				-0.3f*sinf(0.1f*x) + 0.03f*x*sinf(0.1f*z));
-	XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
-	XMStoreFloat3(&n, unitNormal);
-	return n;
-}
-
-void Blending::CreateHillGeometryBuffers()
+void Stenciling::CreateRoomGeometryBuffers()
 {
 	//create vertex buffer
-	MeshGenerator::MeshData grid;
-	MeshGenerator meshGen;
+	Vertex::Basic32 v[30];
 
-	meshGen.CreateGrid(160.f, 160.f, 50, 50, grid);
+	//floor:observe we tile texture coordinates
+	v[0] = Vertex::Basic32(-3.5f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f);
+	v[1] = Vertex::Basic32(-3.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex::Basic32(7.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 4.0f, 0.0f);
 
-	//the count of index
-	mGridIndexCount = grid.Indices.size();
+	v[3] = Vertex::Basic32(-3.5f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f);
+	v[4] = Vertex::Basic32(7.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 4.0f, 0.0f);
+	v[5] = Vertex::Basic32(7.5f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 4.0f, 4.0f);
 
-	//apply the height function to each vertex
-	//allocate  color for each vertex
-	std::vector<Vertex::Basic32> vertices(grid.Vertices.size());
-	for (int i = 0; i < grid.Vertices.size(); i++)
-	{
-		XMFLOAT3 p = grid.Vertices[i].Position;
-		p.y = GetHeight(p.x, p.z);
+	//wall
+	v[6] = Vertex::Basic32(-3.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 2.0f);
+	v[7] = Vertex::Basic32(-3.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	v[8] = Vertex::Basic32(-2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.5f, 0.0f);
 
-		vertices[i].Pos = p;
-		vertices[i].Normal = GetNormal(p.x, p.z);
-		vertices[i].Tex = grid.Vertices[i].TexC;
-	}
+	v[9] = Vertex::Basic32(-3.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 2.0f);
+	v[10] = Vertex::Basic32(-2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.5f, 0.0f);
+	v[11] = Vertex::Basic32(-2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.5f, 2.0f);
+
+	v[12] = Vertex::Basic32(2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 2.0f);
+	v[13] = Vertex::Basic32(2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	v[14] = Vertex::Basic32(7.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 2.0f, 0.0f);
+
+	v[15] = Vertex::Basic32(2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 2.0f);
+	v[16] = Vertex::Basic32(7.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 2.0f, 0.0f);
+	v[17] = Vertex::Basic32(7.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 2.0f, 2.0f);
+
+	v[18] = Vertex::Basic32(-3.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	v[19] = Vertex::Basic32(-3.5f, 6.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	v[20] = Vertex::Basic32(7.5f, 6.0f, 0.0f, 0.0f, 0.0f, -1.0f, 6.0f, 0.0f);
+
+	v[21] = Vertex::Basic32(-3.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	v[22] = Vertex::Basic32(7.5f, 6.0f, 0.0f, 0.0f, 0.0f, -1.0f, 6.0f, 0.0f);
+	v[23] = Vertex::Basic32(7.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 6.0f, 1.0f);
+
+	//mirror
+	v[24] = Vertex::Basic32(-2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	v[25] = Vertex::Basic32(-2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	v[26] = Vertex::Basic32(2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+
+	v[27] = Vertex::Basic32(-2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	v[28] = Vertex::Basic32(2.5f, 4.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+	v[29] = Vertex::Basic32(2.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::Basic32) * grid.Vertices.size();
+	vbd.ByteWidth = sizeof(Vertex::Basic32) * 30;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &vertices[0];
-	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pHillVB));
+	vinitData.pSysMem = &v[0];
+	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pRoomVB));
 
-	//create the index buffer
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * mGridIndexCount;
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &grid.Indices[0];
-	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pHillIB));
 }
 
-void Blending::CreateWaveGeometryBuffers()
+void Stenciling::CreateSkullGeometryBuffers()
 {
+	std::ifstream fin("Models/skull.txt");
+
+	if (!fin)
+	{
+		MessageBox(0, L"Models/skull.txt not found.", 0, 0);
+		return;
+	}
+
+	UINT	vcount = 0;
+	UINT	tcount = 0;
+
+	std::string ignore;
+
+	fin >> ignore >> vcount;
+	fin >> ignore >> tcount;
+	fin >> ignore >> ignore >> ignore >> ignore;
+
+	std::vector<Vertex::Basic32> vertices(vcount);
+	for (UINT i = 0; i < vcount; i++)
+	{
+		fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
+		fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
+	}
+
+	fin >> ignore;
+	fin >> ignore;
+	fin >> ignore;
+
+	mSkullIndexCount = 3 * tcount;
+	std::vector<UINT> indices(mSkullIndexCount);
+	for (UINT i = 0; i < tcount; i++)
+	{
+		fin >> indices[i * 3 + 0] >> indices[i * 3 + 1] >> indices[i * 3 + 2];
+	}
+
+	fin.close();
+
+
 	//create the vertex buffer.note that we allocate space only,as 
 	//we will be updating the data every time step of the simulation
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_DYNAMIC;
-	vbd.ByteWidth = sizeof(Vertex::Basic32) * mWaves.VertexCount();
+	vbd.ByteWidth = sizeof(Vertex::Basic32) *vcount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	vbd.MiscFlags = 0;
-	HR(pd3dDevice->CreateBuffer(&vbd, 0, &pWavesVB));
-
-	//create the index buffer.the index buffer is fixed,so we
-	//only need to create and set once
-
-	std::vector<UINT> indices(3 * mWaves.TriangleCount());
-
-	//Iterator over each quad
-	UINT m = mWaves.RowCount();
-	UINT n = mWaves.ColumnCount();
-	int k = 0;
-	for (UINT i = 0; i < m - 1; ++i)
-	{
-		for (DWORD j = 0; j < n - 1; ++j)
-		{
-			indices[k]     = i*n + j;
-			indices[k + 1] = i*n + j + 1;
-			indices[k + 2] = (i+1)*n + j;
-
-			indices[k + 3] = (i+1)*n + j;
-			indices[k + 4] = i*n + j + 1;
-			indices[k + 5] = (i+1)*n + j + 1;
-
-			k += 6;
-		}
-	}
+	D3D11_SUBRESOURCE_DATA viniData;
+	viniData.pSysMem = &vertices[0];
+	HR(pd3dDevice->CreateBuffer(&vbd, &viniData, &pSkullVB));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -486,45 +541,5 @@ void Blending::CreateWaveGeometryBuffers()
 	ibd.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &indices[0];
-	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pWavesIB));
-}
-
-void Blending::CreateBoxGeometryBuffers()
-{
-	MeshGenerator::MeshData box;
-	MeshGenerator meshGen;
-
-	meshGen.CreateBox(1.f, 1.f, 1.0f, box);
-
-	//apply the height function to each vertex
-	//allocate  color for each vertex
-	std::vector<Vertex::Basic32> vertices(box.Vertices.size());
-	for (int i = 0; i < box.Vertices.size(); i++)
-	{
-		vertices[i].Pos = box.Vertices[i].Position;
-		vertices[i].Normal = box.Vertices[i].Normal;
-		vertices[i].Tex = box.Vertices[i].TexC;
-	}
-
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::Basic32) * box.Vertices.size();
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &vertices[0];
-	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pBoxVB));
-
-	//create the index buffer
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * box.Indices.size();
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &box.Indices[0];
-	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pBoxIB));
+	HR(pd3dDevice->CreateBuffer(&ibd, &iinitData, &pSkullIB));
 }

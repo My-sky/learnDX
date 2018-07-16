@@ -340,6 +340,6 @@ technique11 Light3TexAlphaClipFog
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS(3, true, false, true)));
+		SetPixelShader(CompileShader(ps_5_0, PS(3, true, true, true)));
 	}
 }

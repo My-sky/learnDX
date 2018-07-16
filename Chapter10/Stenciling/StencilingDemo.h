@@ -15,11 +15,11 @@ enum RenderOptions
 	TextureAndFog = 2
 };
 
-class Blending :public D3DApp
+class Stenciling :public D3DApp
 {
 public:
-	Blending(HINSTANCE hInstance);
-	~Blending();
+	Stenciling(HINSTANCE hInstance);
+	~Stenciling();
 
 	bool Init();
 	void OnResize();
@@ -31,41 +31,31 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
-	float GetHeight(float x, float z) const;
-	XMFLOAT3 GetNormal(float x, float y) const;
-	void CreateHillGeometryBuffers();//vertex index
-	void CreateWaveGeometryBuffers();//vertex index
-	void CreateBoxGeometryBuffers();
+
+	void CreateRoomGeometryBuffers();//vertex index
+	void CreateSkullGeometryBuffers();//vertex index
 
 private:
-	ID3D11Buffer* pHillVB;
-	ID3D11Buffer* pHillIB;
+	ID3D11Buffer* pRoomVB;
 
-	ID3D11Buffer* pWavesVB;
-	ID3D11Buffer* pWavesIB;
+	ID3D11Buffer* pSkullVB;
+	ID3D11Buffer* pSkullIB;
 
-	ID3D11Buffer* pBoxVB;
-	ID3D11Buffer* pBoxIB;
+	ID3D11ShaderResourceView* pFloorDiffuseMapSRV;
+	ID3D11ShaderResourceView* pWallDiffuseMapSRV;
+	ID3D11ShaderResourceView* pMirrorDiffuseMapSRV;
 
-	ID3D11ShaderResourceView* pGrassMapSRV;
-	ID3D11ShaderResourceView* pWaveMapSRV;
-	ID3D11ShaderResourceView* pBoxMapSRV;
-
-	Waves mWaves;
 
 	DirectionalLight mDirLights[3];
-	Material mHillMat;
-	Material mWavesMat;
-	Material mBoxMat;
+	Material mRoomMat;
+	Material mSkullMat;
+	Material mMirrorMat;
 
-	UINT mGridIndexCount;
-	XMFLOAT2 mWaveTexOffset;
+	XMFLOAT4X4 mRoomWorld;
+	XMFLOAT4X4 mSkullWorld;
 
-	XMFLOAT4X4 mGrassTexTransform;
-	XMFLOAT4X4 mWaveTexTransform;
-	XMFLOAT4X4 mHillWorld;
-	XMFLOAT4X4 mWaveWorld;
-	XMFLOAT4X4 mBoxWorld;
+	UINT mSkullIndexCount;
+	XMFLOAT3 mSkullTranslation;
 
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProject;
