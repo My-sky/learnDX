@@ -36,7 +36,7 @@ void RenderStates::InitAll(ID3D11Device* device)
 
 	//CullClockwiseRS
 	D3D11_RASTERIZER_DESC CullClockwiseDesc;
-	ZeroMemory(&noCullDesc, sizeof(D3D11_RASTERIZER_DESC));
+	ZeroMemory(&CullClockwiseDesc, sizeof(D3D11_RASTERIZER_DESC));
 	CullClockwiseDesc.FillMode = D3D11_FILL_SOLID;
 	CullClockwiseDesc.CullMode = D3D11_CULL_BACK;
 	CullClockwiseDesc.FrontCounterClockwise = true;

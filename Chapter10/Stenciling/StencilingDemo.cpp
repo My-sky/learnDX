@@ -475,7 +475,7 @@ void Stenciling::CreateRoomGeometryBuffers()
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &v[0];
+	vinitData.pSysMem = v;
 	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pRoomVB));
 
 }
@@ -524,10 +524,10 @@ void Stenciling::CreateSkullGeometryBuffers()
 	//we will be updating the data every time step of the simulation
 
 	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_DYNAMIC;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(Vertex::Basic32) *vcount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA viniData;
 	viniData.pSysMem = &vertices[0];
