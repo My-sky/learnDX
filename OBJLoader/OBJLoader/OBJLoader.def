@@ -1,0 +1,5 @@
+;OBJLoader.dll
+
+LIBRARY OBJLoader
+EXPORTS
+Ad @ 1

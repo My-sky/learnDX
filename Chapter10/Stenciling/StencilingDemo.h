@@ -50,6 +50,7 @@ private:
 	Material mRoomMat;
 	Material mSkullMat;
 	Material mMirrorMat;
+	Material mShadowMat;
 
 	XMFLOAT4X4 mRoomWorld;
 	XMFLOAT4X4 mSkullWorld;

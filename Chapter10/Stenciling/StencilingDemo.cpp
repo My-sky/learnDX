@@ -60,6 +60,10 @@ mSkullMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
 mMirrorMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 mMirrorMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
 mMirrorMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
+
+mShadowMat.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+mShadowMat.Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
+mShadowMat.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 16.0f);
 }
 
 Stenciling::~Stenciling()
@@ -141,9 +145,9 @@ void Stenciling::UpdateScene(float dt)//update the view matrix ; the camera posi
 	if (GetAsyncKeyState('D') & 0x8000)
 		mSkullTranslation.x += 1.0f*dt;
 	if (GetAsyncKeyState('W') & 0x8000)
-		mSkullTranslation.z += 1.0f*dt;
+		mSkullTranslation.y += 1.0f*dt;
 	if (GetAsyncKeyState('S') & 0x8000)
-		mSkullTranslation.z -= 1.0f*dt;
+		mSkullTranslation.y -= 1.0f*dt;
 
 	//set the downline of the move
 	mSkullTranslation.y = MathHelper::Max(mSkullTranslation.y, 0.0f);
@@ -369,6 +373,40 @@ void Stenciling::DrawScene()
 		pImmediateContext->Draw(6, 24);
 
 		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+	}
+
+	//draw the shadow
+	activeSkullTech->GetDesc(&techDesc);
+	for (UINT i = 0; i < techDesc.Passes; i++)
+	{
+		pImmediateContext->IASetVertexBuffers(0, 1, &pSkullVB, &stride, &offset);
+		pImmediateContext->IASetIndexBuffer(pSkullIB, DXGI_FORMAT_R32_UINT, 0);
+
+		XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);//xz
+		XMVECTOR toMainLight = -XMLoadFloat3(&mDirLights[0].Direction);
+		XMMATRIX S = XMMatrixShadow(shadowPlane, toMainLight);
+		XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
+
+
+		//Set per object constants
+		XMMATRIX world = XMLoadFloat4x4(&mSkullWorld)*S*shadowOffsetY;
+		XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+		XMMATRIX worldViewProj = world*view*project;
+
+		Effects::pBasicFX->SetWorld(world);
+		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
+		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
+		Effects::pBasicFX->SetMaterial(mShadowMat);
+
+		//display the wireframe
+		pImmediateContext->OMSetDepthStencilState(RenderStates::pNoDoubleBlendDSS, 0);
+		pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor, 0xffffffff);
+		activeSkullTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
+		pImmediateContext->DrawIndexed(mSkullIndexCount, 0, 0);
+
+		pImmediateContext->OMSetDepthStencilState(0, 0);
+		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+
 	}
 
 	HR(pSwapChain->Present(0, 0));

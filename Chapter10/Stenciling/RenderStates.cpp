@@ -124,6 +124,27 @@ void RenderStates::InitAll(ID3D11Device* device)
 
 	HR(device->CreateDepthStencilState(&drawReflectionDesc, &pDrawReflectionDSS));
 
+	//nodoubleblend
+	D3D11_DEPTH_STENCIL_DESC noDoubleBlendDesc;
+	noDoubleBlendDesc.DepthEnable = true;
+	noDoubleBlendDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	noDoubleBlendDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	noDoubleBlendDesc.StencilEnable = true;
+	noDoubleBlendDesc.StencilReadMask = 0xff;
+	noDoubleBlendDesc.StencilWriteMask = 0xff;
+
+	noDoubleBlendDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	noDoubleBlendDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+
+	noDoubleBlendDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	noDoubleBlendDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+
+	HR(device->CreateDepthStencilState(&noDoubleBlendDesc, &pNoDoubleBlendDSS));
+
 
 }
 
