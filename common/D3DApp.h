@@ -57,6 +57,6 @@ protected:
 	std::wstring mMainWndCaption;      //窗口标题
 	int mClientWidth;
 	int mClientHeight;
-	bool bIsEnable4xMsaa;              //是否支持4重采样
+	bool mEnable4xMsaa;              //是否支持4重采样
 };
 #endif

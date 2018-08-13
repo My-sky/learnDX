@@ -19,11 +19,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 
 Billboard::Billboard(HINSTANCE hInstance)
 	:D3DApp(hInstance), pHillVB(0), pHillIB(0), pWavesVB(0), pWavesIB(0), pBoxVB(0), pBoxIB(0), pTreeVB(0), pTreePointLayout(0),
-	mGridIndexCount(0),pGrassMapSRV(0),pWaveMapSRV(0),pBoxMapSRV(0),mWaveTexOffset(0.0f,0.0f),mRenderOptions(RenderOptions::TextureAndFog),
-	mEyePosW(0.0f,0.0f,0.0f),mThea(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(80.0f)
+	mGridIndexCount(0),pGrassMapSRV(0),pWaveMapSRV(0),pBoxMapSRV(0), pTreeArrayMapSRV(0),mWaveTexOffset(0.0f,0.0f),mRenderOptions(RenderOptions::TextureAndFog),
+	mAlphaToCoverageOn(true),mEyePosW(0.0f,0.0f,0.0f),mThea(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(80.0f)
 {
 mMainWndCaption = L"Billboard Demo";
-bIsEnable4xMsaa = false;
+mEnable4xMsaa = true;
 
 XMMATRIX I = XMMatrixIdentity();
 XMStoreFloat4x4(&mHillWorld, I);
@@ -89,6 +89,7 @@ Billboard::~Billboard()
 	ReleaseCOM(pGrassMapSRV);
 	ReleaseCOM(pWaveMapSRV);
 	ReleaseCOM(pBoxMapSRV);
+	ReleaseCOM(pTreeArrayMapSRV);
 
 	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
@@ -100,7 +101,7 @@ bool Billboard::Init()
 	if (!D3DApp::Init())
 		return false;
 
-	mWaves.Init(160, 160, 1.0f, 0.03f, 3.25f, 0.4f);
+	mWaves.Init(160, 160, 1.0f, 0.03f, 5.0f, 0.3f);
 
 	Effects::InitAll(pd3dDevice);
 	InputLayouts::InitAll(pd3dDevice);
@@ -211,6 +212,10 @@ void Billboard::UpdateScene(float dt)//update the view matrix ; the camera posit
 		mRenderOptions = RenderOptions::Textures;
 	if (GetAsyncKeyState('3') & 0x8000)
 		mRenderOptions = RenderOptions::TextureAndFog;
+	if (GetAsyncKeyState('R') & 0x8000)
+		mAlphaToCoverageOn = true;
+	if (GetAsyncKeyState('T') & 0x8000)
+		mAlphaToCoverageOn = false;
 }
 
 void Billboard::DrawScene()
@@ -219,6 +224,14 @@ void Billboard::DrawScene()
 		reinterpret_cast<const float*>(&Colors::Silver));
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	XMMATRIX view = XMLoadFloat4x4(&mView);
+	XMMATRIX project = XMLoadFloat4x4(&mProject);
+	XMMATRIX viewProj = view *project;
+
+	DrawTreeSptites(viewProj);
+
+
 	pImmediateContext->IASetInputLayout(InputLayouts::Basic32);
 	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
@@ -226,11 +239,6 @@ void Billboard::DrawScene()
 	UINT offset = 0;
 	
 	float blendFactor[] = { 0.0f,0.0f,0.0f,0.0f };
-
-	//constants
-	XMMATRIX view = XMLoadFloat4x4(&mView);
-	XMMATRIX project = XMLoadFloat4x4(&mProject);
-	//XMMATRIX viewProj =  view *project;
 
 	//set per frame constants
 	Effects::pBasicFX->SetDirLights(mDirLights);
@@ -553,7 +561,7 @@ void Billboard::CreateTreePointLayout()
 	{
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,
 			D3D11_INPUT_PER_VERTEX_DATA,0},
-		{"SIZE",0,DXGI_FORMAT_R32G32_FLOAT,0,0,
+		{"SIZE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,
 			D3D11_INPUT_PER_VERTEX_DATA,0}
 	};
 
@@ -580,7 +588,7 @@ void Billboard::CreateTreePointBuffers()
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(treePoints) * mTreeCount;
+	vbd.ByteWidth = sizeof(TreePointSprite) * mTreeCount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -591,5 +599,49 @@ void Billboard::CreateTreePointBuffers()
 
 void Billboard::DrawTreeSptites(CXMMATRIX viewProj)
 {
+	Effects::pBillboardFX->SetWorldViewProject(viewProj);
+	Effects::pBillboardFX->SetEyePosW(mEyePosW);
+	Effects::pBillboardFX->SetFogColor(Colors::Silver);
+	Effects::pBillboardFX->SetFogStart(15.0f);
+	Effects::pBillboardFX->SetFogRange(175.0f);
+	Effects::pBillboardFX->SetDirLights(mDirLights);
+	Effects::pBillboardFX->SetMaterial(mTreeMat);
+	Effects::pBillboardFX->SetTreeArraySRV(pTreeArrayMapSRV);
 
+	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	pImmediateContext->IASetInputLayout(pTreePointLayout);
+
+	UINT stride = sizeof(TreePointSprite);
+	UINT offset = 0;
+
+	ID3DX11EffectTechnique* treeTech=0;
+	switch (mRenderOptions)
+	{
+	case RenderOptions::Lighting:
+		treeTech = Effects::pBillboardFX->pLight3Tech;
+		break;
+	case RenderOptions::Textures:
+		treeTech = Effects::pBillboardFX->pLight3TexAlphaTech;
+		break;
+	case RenderOptions::TextureAndFog:
+		treeTech = Effects::pBillboardFX->pLight3TexAlphaClipFogTech;
+		break;
+	}
+
+	D3DX11_TECHNIQUE_DESC techDesc;
+	treeTech->GetDesc(&techDesc);
+	for (UINT p = 0; p < techDesc.Passes; p++)
+	{
+		pImmediateContext->IASetVertexBuffers(0, 1, &pTreeVB, &stride, &offset);
+		float blendFactor[4] = { 0.0f,0.0f,0.0f,0.0f };
+		if (mAlphaToCoverageOn)
+		{
+			pImmediateContext->OMSetBlendState(RenderStates::pAlphaToCoverageBS, blendFactor, 0xffffffff);
+
+		}
+		treeTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
+		pImmediateContext->Draw(mTreeCount, 0);
+
+		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+	}
 }

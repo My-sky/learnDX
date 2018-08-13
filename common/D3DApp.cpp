@@ -18,7 +18,7 @@ D3DApp::D3DApp(HINSTANCE hInstance) :
 	md3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
 	mClientHeight(600),
 	mClientWidth(800),
-	bIsEnable4xMsaa(false),
+	mEnable4xMsaa(false),
 	hMainWnd(NULL),
 	bIsAppPaused(false),
 	bIsMaximized(false),
@@ -131,7 +131,7 @@ void D3DApp::OnResize()
 	depthStencilDecs.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	//whether use 4x multisample
-	if (bIsEnable4xMsaa)
+	if (mEnable4xMsaa)
 	{
 		depthStencilDecs.SampleDesc.Count = 4;
 		depthStencilDecs.SampleDesc.Quality = m4xMsaaQuality - 1;
@@ -361,7 +361,7 @@ bool D3DApp::InitDirect3D()
     sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
      
 	//check the 4x multisample
-    if (bIsEnable4xMsaa)
+    if (mEnable4xMsaa)
      {
          sd.SampleDesc.Count = 4;
          sd.SampleDesc.Quality = m4xMsaaQuality - 1;

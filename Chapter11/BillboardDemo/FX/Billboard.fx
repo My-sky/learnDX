@@ -13,7 +13,7 @@ cbuffer cbPerFrame
 cbuffer cbPerObject
 {
 	float4x4 gViewProj;
-	float4x4 gMaterial;
+	Material gMaterial;
 };
 
 cbuffer cbFixed
@@ -33,7 +33,7 @@ Texture2DArray gTreeMapArray;
 
 SamplerState samLinear
 {
-	Filter = MIN_MAX_MAG_LINEAR;
+	Filter = MIN_MAG_MIP_LINEAR;
 
 	AddressU = WRAP;
 	AddressV = WRAP;
@@ -54,8 +54,8 @@ struct VertexOut
 struct GeoOut
 {
 	float4 PosH:SV_POSITION;
-	float4 PosW:POSITION;
-	float3 Normal:NORMAL;
+	float3 PosW:POSITION;
+	float3 NormalW:NORMAL;
 	float2 Tex:TEXCOORD;
 	uint PrimID:SV_PrimitiveID;
 };
@@ -96,7 +96,7 @@ void GS(point VertexOut gin[1],
 	{
 		gout.PosH = mul(v[i],gViewProj);
 		gout.PosW = v[i].xyz;
-		gout.Normal = look;
+		gout.NormalW = look;
 		gout.Tex = gTexC[i];
 		gout.PrimID = primID;
 		triStream.Append(gout);
@@ -190,6 +190,6 @@ technique11 Light3TexAlphaClipFog
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(CompileShader(gs_5_0,GS()));
-		SetPixelShader(CompileShader(ps_5_0, PS(3, true, false, true)));
+		SetPixelShader(CompileShader(ps_5_0, PS(3, true, true, true)));
 	}
 }

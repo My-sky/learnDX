@@ -82,14 +82,14 @@ BillboardEffect::BillboardEffect(ID3D11Device* device, const std::wstring& filen
 	pLight3TexAlphaTech = pFX->GetTechniqueByName("Light3TexAlphaClip");
 	pLight3TexAlphaClipFogTech = pFX->GetTechniqueByName("Light3TexAlphaClipFog");
 
-	pWorldViewProject = pFX->GetVariableByName("gWorldViewProj")->AsMatrix();
+	pWorldViewProject = pFX->GetVariableByName("gViewProj")->AsMatrix();
 	pEyePosW = pFX->GetVariableByName("gEyePosW")->AsVector();
 	pFogColor = pFX->GetVariableByName("gFogColor")->AsVector();
 	pFogStart = pFX->GetVariableByName("gFogStart")->AsScalar();
 	pFogRange = pFX->GetVariableByName("gFogRange")->AsScalar();
 	pDirLights = pFX->GetVariableByName("gDirLights");
 	pMat = pFX->GetVariableByName("gMaterial");
-	pDiffuseMap = pFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
+	pTreeArraySRV = pFX->GetVariableByName("gTreeMapArray")->AsShaderResource();
 
 }
 
@@ -108,7 +108,7 @@ BillboardEffect* Effects::pBillboardFX = 0;
 void Effects::InitAll(ID3D11Device* device)
 {
 	pBasicFX = new BasicEffect(device, L"../shaders/Basic.fxo");
-	pBillboardFX = new BillboardEffect(device, L"../shaders/BillboardTree.fxo");
+	pBillboardFX = new BillboardEffect(device, L"../shaders/Billboard.fxo");
 }
 
 void Effects::DestroyAll()
