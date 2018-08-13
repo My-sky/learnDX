@@ -64,7 +64,9 @@ bool Crate::Init()
 	Effects::InitAll(pd3dDevice);
 	InputLayouts::InitAll(pd3dDevice);
 
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/flare.dds", 0, 0, &pDiffuseMapSRV, 0));
+	D3DX11_IMAGE_LOAD_INFO info;
+	info.MipLevels = 1;
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/flare.dds", &info, 0, &pDiffuseMapSRV, 0));
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/flarealpha.dds", 0, 0, &pCompositeMapSRV, 0));
 
 	CreateGeometryBuffers();
@@ -109,7 +111,7 @@ void Crate::UpdateScene(float dt)//update the view matrix ; the camera position
 	XMMATRIX trans = XMLoadFloat4x4(&mTrans);
 	XMMATRIX rotate = XMLoadFloat4x4(&mRotate);
 	XMMATRIX texTrans = trans * rotate;//XMMatrixTranspose
-	XMStoreFloat4x4(&mTexTransform, texTrans);
+	//XMStoreFloat4x4(&mTexTransform, texTrans);
 
 }
 
@@ -206,7 +208,7 @@ void Crate::OnMouseMove(WPARAM btnState, int x, int y)
 		mRadius += dx - dy;
 
 		//Restric the radius
-		mRadius = MathHelper::Clamp(mRadius, 1.0f, 15.0f);
+		mRadius = MathHelper::Clamp(mRadius, 1.0f, 50.0f);
 	}
 
 	mLastMousePos.x = x;

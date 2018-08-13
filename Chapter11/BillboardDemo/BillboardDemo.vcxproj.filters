@@ -102,5 +102,8 @@
     <CustomBuild Include="FX\Basic.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="FX\Billboard.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

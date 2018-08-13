@@ -25,8 +25,8 @@ Texture2D gCompositeMap;
 
 SamplerState samAnisotropic
 {
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 4;
+	Filter = MIN_MAG_MIP_LINEAR;// ANISOTROPIC;
+	//MaxAnisotropy = 4;
 
 	AddressU = WRAP;
 	AddressV = WRAP;
@@ -75,9 +75,9 @@ float4 PS(VertexOut pin,uniform int gLightCount,uniform bool gUseTexture) :SV_Ta
 	if (gUseTexture)
 	{
 		//sample texture
-		float4 composColor = gCompositeMap.Sample(samAnisotropic, pin.Tex);
+		//float4 composColor = gCompositeMap.Sample(samAnisotropic, pin.Tex);
 		texColor = gDiffuseMap.Sample(samAnisotropic, pin.Tex);
-		texColor = texColor*composColor;
+		//texColor = texColor*composColor;
 	}
 
 	//lighting

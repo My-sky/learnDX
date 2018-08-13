@@ -66,7 +66,7 @@ void Box::UpdateScene(float dt)//update the view matrix ; the camera position
 	float y = mRadius * cosf(mPhi);
 
 	//build view matrix
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR pos = XMVectorSet(0, 0, -25.0f, 1.0f);
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
@@ -77,11 +77,11 @@ void Box::UpdateScene(float dt)//update the view matrix ; the camera position
 void Box::DrawScene()
 {
 	pImmediateContext->ClearRenderTargetView(pRenderTargetView,
-		reinterpret_cast<const float*>(&Colors::cBlue));
+		reinterpret_cast<const float*>(&Colors::Black));
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(pInputLayout); 
-	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	pImmediateContext->IASetVertexBuffers(0, 1, &pBoxVB, &stride, &offset);
@@ -102,7 +102,7 @@ void Box::DrawScene()
 		pTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
 
 		//36 indices for the box
-		pImmediateContext->DrawIndexed(36, 0, 0);
+		pImmediateContext->Draw(mVertexCount, 0);
 	}
 
 	HR(pSwapChain->Present(0, 0));
@@ -155,24 +155,69 @@ void Box::OnMouseMove(WPARAM btnState, int x, int y)
 	mLastMousePos.y = y;
 }
 
+void Box::GenerateLinePoints(XMFLOAT2 startPoint, XMFLOAT2 endPoint)
+{
+	float x0 = startPoint.x, y0 = startPoint.y;
+	float xn = endPoint.x, yn = endPoint.y;
+	float dx = fabs(xn - x0), dy = fabs(yn - y0);
+	float p = 2 * dy - dx;
+	float twoDyMinusDx = 2 * (dy - dx);
+	float x, y;
+	if (x0 > xn)
+	{
+		x = xn;
+		y = yn;
+		xn = x0;
+	}
+	else
+	{
+		x = x0;
+		y = y0;
+	}
+	vecLinePoints.push_back({ XMFLOAT3(x,y, 0.0f),(const float*)&Colors::Cyan });
+	while (x < xn)
+	{
+		x++;
+		if (p < 0)
+		{
+			p = p + 2 * dy;
+		}
+		else
+		{
+			p = p + twoDyMinusDx;
+			y = y + 1;
+		}
+		vecLinePoints.push_back({ XMFLOAT3(x,y, 0.0f),(const float*)&Colors::Cyan });
+	}
+
+}
+
 void Box::CreateGeometryBuffers()
 {
 	//create vertex buffer
-	Vertex vertex[] =
+	GenerateLinePoints(XMFLOAT2(-10.f, -6.f), XMFLOAT2(15.f, 9.f));
+	mVertexCount = vecLinePoints.size();
+	Vertex* vertex=new Vertex[mVertexCount];
+	for (int i = 0; i < mVertexCount; i++)
 	{
-		{XMFLOAT3(-1.0f,-1.0f,-1.0f),(const float*)&Colors::cWhite},
-		{XMFLOAT3(-1.0f,+1.0f,-1.0f),(const float*)&Colors::cBlack},
-		{XMFLOAT3(+1.0f,+1.0f,-1.0f),(const float*)&Colors::cRed },
-		{XMFLOAT3(+1.0f,-1.0f,-1.0f),(const float*)&Colors::cGreen },
-		{XMFLOAT3(-1.0f,-1.0f,+1.0f),(const float*)&Colors::cBlue },
-		{XMFLOAT3(-1.0f,+1.0f,+1.0f),(const float*)&Colors::cYellow },
-		{XMFLOAT3(+1.0f,+1.0f,+1.0f),(const float*)&Colors::cCyan },
-		{XMFLOAT3(+1.0f,-1.0f,+1.0f),(const float*)&Colors::cMagenta},
-	};
+		vertex[i] = vecLinePoints[i];
+	}
+
+	//Vertex vertex[] =
+	//{
+	//	{XMFLOAT3(-1.0f,-1.0f, 0.0f),(const float*)&Colors::Cyan},
+	//	{XMFLOAT3(-1.0f,+1.0f, 0.0f),(const float*)&Colors::Cyan },
+	//	{XMFLOAT3(+1.0f,+1.0f, 0.0f),(const float*)&Colors::Cyan },
+	//	{XMFLOAT3(+1.0f,-1.0f, 0.0f),(const float*)&Colors::Cyan },
+	//	/*{XMFLOAT3(-1.0f,-1.0f,+1.0f),(const float*)&Colors::Blue },
+	//	{XMFLOAT3(-1.0f,+1.0f,+1.0f),(const float*)&Colors::Yellow },
+	//	{XMFLOAT3(+1.0f,+1.0f,+1.0f),(const float*)&Colors::Cyan },
+	//	{XMFLOAT3(+1.0f,-1.0f,+1.0f),(const float*)&Colors::Magenta},*/
+	//};
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * 8;
+	vbd.ByteWidth = sizeof(Vertex) * mVertexCount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -180,6 +225,7 @@ void Box::CreateGeometryBuffers()
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = vertex;
 	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pBoxVB));
+	delete[] vertex;
 
 	//create the index buffer
 	UINT indices[] =
@@ -188,7 +234,7 @@ void Box::CreateGeometryBuffers()
 		0,1,2,
 		0,2,3,
 
-		//back face
+		//back face;
 		4,6,5,
 		4,7,6,
 

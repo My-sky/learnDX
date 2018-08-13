@@ -79,7 +79,7 @@ BillboardEffect::BillboardEffect(ID3D11Device* device, const std::wstring& filen
 	:Effect(device, filename)
 {
 	pLight3Tech = pFX->GetTechniqueByName("Light3");
-	pLight3TexAlphaTech = pFX->GetTechniqueByName("Light3TexAlpha");
+	pLight3TexAlphaTech = pFX->GetTechniqueByName("Light3TexAlphaClip");
 	pLight3TexAlphaClipFogTech = pFX->GetTechniqueByName("Light3TexAlphaClipFog");
 
 	pWorldViewProject = pFX->GetVariableByName("gWorldViewProj")->AsMatrix();

@@ -4,6 +4,7 @@
 #include "d3dx11effect.h"
 #include "D3DApp.h"
 #include "mathHelper.h"
+#include<vector>
 
 
 struct Vertex
@@ -31,6 +32,7 @@ private:
 	void CreateGeometryBuffers();//vertex index
 	void CreateFX();
 	void CreateLayout();
+	void GenerateLinePoints(XMFLOAT2 startPoint, XMFLOAT2 endPoint);
 
 private:
 	ID3D11Buffer* pBoxVB;
@@ -46,6 +48,8 @@ private:
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProject;
 
+	std::vector<Vertex> vecLinePoints;
+	int mVertexCount;
 	float mThea;
 	float mPhi;
 	float mRadius;

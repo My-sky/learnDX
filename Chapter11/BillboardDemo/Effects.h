@@ -101,7 +101,7 @@ public:
 	void SetFogRange(float f) { pFogRange->SetFloat(f); }
 	void SetDirLights(const DirectionalLight* lights) { pDirLights->SetRawValue(lights, 0, 3 * sizeof(DirectionalLight)); }
 	void SetMaterial(const Material& mat) { pMat->SetRawValue(&mat, 0, sizeof(Material)); }
-	void SetDiffuseMap(ID3D11ShaderResourceView* tex) { pDiffuseMap->SetResource(tex); }
+	void SetTreeArraySRV(ID3D11ShaderResourceView* tex) { pTreeArraySRV->SetResource(tex); }
 
 
 
@@ -119,7 +119,7 @@ public:
 	ID3DX11EffectVariable*	pDirLights;
 	ID3DX11EffectVariable*	pMat;
 
-	ID3DX11EffectShaderResourceVariable* pDiffuseMap;
+	ID3DX11EffectShaderResourceVariable* pTreeArraySRV;
 };
 
 #pragma region Effects

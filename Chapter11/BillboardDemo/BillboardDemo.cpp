@@ -68,6 +68,10 @@ mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 32.0f);
 mBoxMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 mBoxMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 mBoxMat.Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
+
+mTreeMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+mTreeMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+mTreeMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
 }
 
 Billboard::~Billboard()
@@ -101,6 +105,7 @@ bool Billboard::Init()
 	Effects::InitAll(pd3dDevice);
 	InputLayouts::InitAll(pd3dDevice);
 	RenderStates::InitAll(pd3dDevice);
+	CreateTreePointLayout();
 
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
 		L"Textures/grass.dds", 0, 0, &pGrassMapSRV, 0));
@@ -109,9 +114,20 @@ bool Billboard::Init()
 	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice,
 		L"Textures/WireFence.dds", 0, 0, &pBoxMapSRV, 0));
 
+	std::vector<std::wstring> filenames =
+	{
+		L"Textures/tree0.dds",
+		L"Textures/tree1.dds",
+		L"Textures/tree2.dds",
+		L"Textures/tree3.dds",
+	};
+
+	pTreeArrayMapSRV = d3dHelper::CreateTexture2DArraySRV(pd3dDevice, pImmediateContext, filenames, DXGI_FORMAT_R8G8B8A8_UNORM);
+
 	CreateHillGeometryBuffers();
 	CreateWaveGeometryBuffers();
 	CreateBoxGeometryBuffers();
+	CreateTreePointBuffers();
 
 
 	return true;
@@ -540,5 +556,40 @@ void Billboard::CreateTreePointLayout()
 		{"SIZE",0,DXGI_FORMAT_R32G32_FLOAT,0,0,
 			D3D11_INPUT_PER_VERTEX_DATA,0}
 	};
+
+	D3DX11_PASS_DESC passDesc;
+	Effects::pBillboardFX->pLight3Tech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(pd3dDevice->CreateInputLayout(desc, 2, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &pTreePointLayout));
+}
+
+void Billboard::CreateTreePointBuffers()
+{
+	TreePointSprite treePoints[mTreeCount];
+
+	for (UINT i = 0; i < mTreeCount; i++)
+	{
+		float x = MathHelper::RandF(-35.0f, 35.f);
+		float z = MathHelper::RandF(-35.0f, 35.f);
+		float y = GetHeight(x, z);
+
+		y += 10.f;
+
+		treePoints[i].Pos = XMFLOAT3(x, y, z);
+		treePoints[i].Size = XMFLOAT2(24.0f, 24.0f);
+	}
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(treePoints) * mTreeCount;
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA vinitData;
+	vinitData.pSysMem = treePoints;
+	HR(pd3dDevice->CreateBuffer(&vbd, &vinitData, &pTreeVB));
+}
+
+void Billboard::DrawTreeSptites(CXMMATRIX viewProj)
+{
 
 }

@@ -41,7 +41,9 @@ private:
 	void CreateHillGeometryBuffers();//vertex index
 	void CreateWaveGeometryBuffers();//vertex index
 	void CreateBoxGeometryBuffers();
+	void CreateTreePointBuffers();
 	void CreateTreePointLayout();
+	void DrawTreeSptites(CXMMATRIX viewProj);
 
 private:
 	ID3D11Buffer* pHillVB;
@@ -60,6 +62,7 @@ private:
 	ID3D11ShaderResourceView* pGrassMapSRV;
 	ID3D11ShaderResourceView* pWaveMapSRV;
 	ID3D11ShaderResourceView* pBoxMapSRV;
+	ID3D11ShaderResourceView* pTreeArrayMapSRV;
 
 	Waves mWaves;
 
@@ -67,6 +70,7 @@ private:
 	Material mHillMat;
 	Material mWavesMat;
 	Material mBoxMat;
+	Material mTreeMat;
 
 	UINT mGridIndexCount;
 	XMFLOAT2 mWaveTexOffset;
@@ -83,6 +87,9 @@ private:
 	XMFLOAT3 mEyePosW;
 
 	RenderOptions mRenderOptions;
+
+	static const UINT mTreeCount = 16;
+	bool mAlphaToCoverageOn;
 
 	float mThea;
 	float mPhi;
