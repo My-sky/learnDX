@@ -328,31 +328,30 @@ void Billboard::DrawScene()
 		Effects::pBasicFX->SetMaterial(mHillMat);
 		Effects::pBasicFX->SetDiffuseMap(pGrassMapSRV);
 
-		//display the wireframe
 		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
 		pImmediateContext->DrawIndexed(mGridIndexCount, 0, 0);
 
-		//draw the waves
-		pImmediateContext->IASetVertexBuffers(0, 1, &pWavesVB, &stride, &offset);
-		pImmediateContext->IASetIndexBuffer(pWavesIB, DXGI_FORMAT_R32_UINT, 0);
+		////draw the waves
+		//pImmediateContext->IASetVertexBuffers(0, 1, &pWavesVB, &stride, &offset);
+		//pImmediateContext->IASetIndexBuffer(pWavesIB, DXGI_FORMAT_R32_UINT, 0);
 
-		//set per object constants
-		world = XMLoadFloat4x4(&mWaveWorld);
-		worldInvTranspose = MathHelper::InverseTranspose(world);
-		worldViewProj = world*view*project;
+		////set per object constants
+		//world = XMLoadFloat4x4(&mWaveWorld);
+		//worldInvTranspose = MathHelper::InverseTranspose(world);
+		//worldViewProj = world*view*project;
 
-		Effects::pBasicFX->SetWorld(world);
-		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
-		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
-		Effects::pBasicFX->SetTexTransform(XMLoadFloat4x4(&mWaveTexTransform));
-		Effects::pBasicFX->SetMaterial(mWavesMat);
-		Effects::pBasicFX->SetDiffuseMap(pWaveMapSRV);
-		
-		pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor,0xffffffff);
-		hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
-		pImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
+		//Effects::pBasicFX->SetWorld(world);
+		//Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
+		//Effects::pBasicFX->SetWorldViewProject(worldViewProj);
+		//Effects::pBasicFX->SetTexTransform(XMLoadFloat4x4(&mWaveTexTransform));
+		//Effects::pBasicFX->SetMaterial(mWavesMat);
+		//Effects::pBasicFX->SetDiffuseMap(pWaveMapSRV);
+		//
+		//pImmediateContext->OMSetBlendState(RenderStates::pTransparentBS, blendFactor,0xffffffff);
+		//hillAndWavesTech->GetPassByIndex(i)->Apply(0, pImmediateContext);
+		//pImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
 
-		pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+		//pImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
 	}
 
 	HR(pSwapChain->Present(0, 0));
@@ -561,7 +560,7 @@ void Billboard::CreateTreePointLayout()
 	{
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,
 			D3D11_INPUT_PER_VERTEX_DATA,0},
-		{"SIZE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,
+		{"PSIZE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,
 			D3D11_INPUT_PER_VERTEX_DATA,0}
 	};
 

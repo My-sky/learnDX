@@ -42,22 +42,22 @@ SamplerState samLinear
 struct VertexIn
 {
 	float3 PosW:POSITION;
-	float2 SizeW:SIZE;
+	float2 SizeW:PSIZE;
 };
 
 struct VertexOut
 {
 	float3 CenterW:POSITION;
-	float2 SizeW:SIZE;
+	float2 SizeW:PSIZE;
 };
 
 struct GeoOut
 {
-	float4 PosH:SV_POSITION;
-	float3 PosW:POSITION;
-	float3 NormalW:NORMAL;
-	float2 Tex:TEXCOORD;
-	uint PrimID:SV_PrimitiveID;
+	float4 PosH		:SV_POSITION;
+	float3 PosW		:POSITION;
+	float3 NormalW	:NORMAL;
+	float2 Tex		:TEXCOORD;
+	uint   PrimID	:SV_PrimitiveID;
 };
 
 VertexOut VS(VertexIn vin)
@@ -87,18 +87,19 @@ void GS(point VertexOut gin[1],
 	float4 v[4];
 	v[0] = float4(gin[0].CenterW + halfWidth*right - halfHeight*up, 1.0f);
 	v[1] = float4(gin[0].CenterW + halfWidth*right + halfHeight*up, 1.0f);
-	v[0] = float4(gin[0].CenterW - halfWidth*right - halfHeight*up, 1.0f);
-	v[0] = float4(gin[0].CenterW - halfWidth*right + halfHeight*up, 1.0f);
+	v[2] = float4(gin[0].CenterW - halfWidth*right - halfHeight*up, 1.0f);
+	v[3] = float4(gin[0].CenterW - halfWidth*right + halfHeight*up, 1.0f);
 
 	//transform quad vertices to world space
 	GeoOut gout;
+	[unroll]
 	for (int i = 0; i < 4; i++)
 	{
-		gout.PosH = mul(v[i],gViewProj);
-		gout.PosW = v[i].xyz;
-		gout.NormalW = look;
-		gout.Tex = gTexC[i];
-		gout.PrimID = primID;
+		gout.PosH		= mul(v[i],gViewProj);
+		gout.PosW		= v[i].xyz;
+		gout.NormalW	= look;
+		gout.Tex		= gTexC[i];
+		gout.PrimID		= primID;
 		triStream.Append(gout);
 	}
 }
