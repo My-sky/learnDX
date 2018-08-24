@@ -101,7 +101,7 @@ void Tessellation::DrawScene()
 
 
 	pImmediateContext->IASetInputLayout(pTessLayout);
-	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST);
 	
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
@@ -142,7 +142,7 @@ void Tessellation::DrawScene()
 
 		pImmediateContext->RSSetState(RenderStates::pNoCullRS);
 		pImmediateContext->RSSetState(RenderStates::pWireframeRS);
-		pImmediateContext->Draw(3, 0);
+		pImmediateContext->Draw(16, 0);
 
 		pImmediateContext->RSSetState(0);
 	}
@@ -212,41 +212,41 @@ void Tessellation::CreateTessVB()
 {
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(XMFLOAT3) * 3;
+	vbd.ByteWidth = sizeof(XMFLOAT3) * 16;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 
 	XMFLOAT3 vertices[] =
 	{
-		XMFLOAT3(1.0f,1.0f,1.0f),
+		/*XMFLOAT3(1.0f,1.0f,1.0f),
 		XMFLOAT3(1.0f,0.0f,1.0f),
-		XMFLOAT3(0.0f,0.0f,1.0f)
+		XMFLOAT3(0.0f,0.0f,1.0f)*/
 
 		//Bezer
-		//// Row 0
-		//XMFLOAT3(-10.0f, -10.0f, +15.0f),
-		//XMFLOAT3(-5.0f,  0.0f, +15.0f),
-		//XMFLOAT3(+5.0f,  0.0f, +15.0f),
-		//XMFLOAT3(+10.0f, 0.0f, +15.0f),
+		// Row 0
+		XMFLOAT3(-10.0f, -10.0f, +15.0f),
+		XMFLOAT3(-5.0f,  0.0f, +15.0f),
+		XMFLOAT3(+5.0f,  0.0f, +15.0f),
+		XMFLOAT3(+10.0f, 0.0f, +15.0f),
 
-		//// Row 1
-		//XMFLOAT3(-15.0f, 0.0f, +5.0f),
-		//XMFLOAT3(-5.0f,  0.0f, +5.0f),
-		//XMFLOAT3(+5.0f,  20.0f, +5.0f),
-		//XMFLOAT3(+15.0f, 0.0f, +5.0f),
+		// Row 1
+		XMFLOAT3(-15.0f, 0.0f, +5.0f),
+		XMFLOAT3(-5.0f,  0.0f, +5.0f),
+		XMFLOAT3(+5.0f,  20.0f, +5.0f),
+		XMFLOAT3(+15.0f, 0.0f, +5.0f),
 
-		//// Row 2
-		//XMFLOAT3(-15.0f, 0.0f, -5.0f),
-		//XMFLOAT3(-5.0f,  0.0f, -5.0f),
-		//XMFLOAT3(+5.0f,  0.0f, -5.0f),
-		//XMFLOAT3(+15.0f, 0.0f, -5.0f),
+		// Row 2
+		XMFLOAT3(-15.0f, 0.0f, -5.0f),
+		XMFLOAT3(-5.0f,  0.0f, -5.0f),
+		XMFLOAT3(+5.0f,  0.0f, -5.0f),
+		XMFLOAT3(+15.0f, 0.0f, -5.0f),
 
-		//// Row 3
-		//XMFLOAT3(-10.0f, 10.0f, -15.0f),
-		//XMFLOAT3(-5.0f,  0.0f, -15.0f),
-		//XMFLOAT3(+5.0f,  0.0f, -15.0f),
-		//XMFLOAT3(+25.0f, 10.0f, -15.0f)
+		// Row 3
+		XMFLOAT3(-10.0f, 10.0f, -15.0f),
+		XMFLOAT3(-5.0f,  0.0f, -15.0f),
+		XMFLOAT3(+5.0f,  0.0f, -15.0f),
+		XMFLOAT3(+25.0f, 10.0f, -15.0f)
 	};
 
 	D3D11_SUBRESOURCE_DATA vinitData;

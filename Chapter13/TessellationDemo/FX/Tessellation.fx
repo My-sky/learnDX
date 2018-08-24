@@ -55,25 +55,32 @@ VertexOut VS(VertexIn vin)
 
 struct PatchTess
 {
-	float EdgeTess[3]   : SV_TessFactor;
-	float InsideTess : SV_InsideTessFactor;
+	float EdgeTess[4]   : SV_TessFactor;
+	float InsideTess[2] : SV_InsideTessFactor;
 };
 
-PatchTess ConstantHS(InputPatch<VertexOut, 3> patch, uint patchID : SV_PrimitiveID)
+PatchTess ConstantHS(InputPatch<VertexOut, 16> patch, uint patchID : SV_PrimitiveID)
 {
 	PatchTess pt;
 
 	// Uniform tessellation for this demo.
-	int tess = 2;
-	int insidetess = 2;
+	float3 centerL = (patch[0].PosL + patch[1].PosL + patch[2].PosL) / 3.0f;
+	float3 centerW = mul(float4(centerL, 1.0f), gWorld).xyz;
+
+	float d = distance(centerW, gEyePosW);
+
+	const float d0 = 20.0f;
+	const float d1 = 100.0f;
+	float tess = 64.0f*saturate((d1 - d) / (d1 - d0));
+
 
 	pt.EdgeTess[0] = tess;
 	pt.EdgeTess[1] = tess;
 	pt.EdgeTess[2] = tess;
-	//pt.EdgeTess[3] = tess;
+	pt.EdgeTess[3] = tess;
 
-	pt.InsideTess = insidetess;
-	//pt.InsideTess[1] = insidetess;
+	pt.InsideTess[0] = tess;
+	pt.InsideTess[1] = tess;
 
 	return pt;
 }
@@ -85,13 +92,13 @@ struct HullOut
 
 // This Hull Shader part is commonly used for a coordinate basis change, 
 // for example changing from a quad to a Bezier bi-cubic.
-[domain("tri")]
-[partitioning("integer")]
+[domain("quad")]
+[partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
-[outputcontrolpoints(3)]
+[outputcontrolpoints(16)]
 [patchconstantfunc("ConstantHS")]
 [maxtessfactor(64.0f)]
-HullOut HS(InputPatch<VertexOut, 3> p,
+HullOut HS(InputPatch<VertexOut, 16> p,
 	uint i : SV_OutputControlPointID,
 	uint patchId : SV_PrimitiveID)
 {
@@ -140,34 +147,34 @@ float4 dBernsteinBasis(float t)
 
 // The domain shader is called for every vertex created by the tessellator.  
 // It is like the vertex shader after tessellation.
-[domain("tri")]
+[domain("quad")]
 DomainOut DS(PatchTess patchTess,
-	float3 uvw : SV_DomainLocation,
-	const OutputPatch<HullOut, 3> bezPatch)
+	float2 uv : SV_DomainLocation,
+	const OutputPatch<HullOut, 16> bezPatch)
 {
 	DomainOut dout;
 
 	//Bezer
-	/*float4 basisU = BernsteinBasis(uv.x);
+	float4 basisU = BernsteinBasis(uv.x);
 	float4 basisV = BernsteinBasis(uv.y);
 
-	float3 p = CubicBezierSum(bezPatch, basisU, basisV);*/
+	float3 p = CubicBezierSum(bezPatch, basisU, basisV);
 
-	//sphere
-	float3 position = float3(0.0f, 0.0f, 0.0f);
-	float pi2 = 6.28318530;
-	float pi = pi2 / 2;
-	float R = 3.0f;
-	float fi = pi*uvw.x;
-	float theta = pi2*uvw.y;
-	float sinFi, cosFi, sinTheta, cosTheta;
-	sincos(fi, sinFi, cosFi);
-	sincos(theta, sinTheta, cosTheta);
-	position = float3(R*sinFi*cosTheta, R*sinFi*sinTheta, R*cosFi);
+	////sphere
+	//float3 position = float3(0.0f, 0.0f, 0.0f);
+	//float pi2 = 6.28318530;
+	//float pi = pi2 / 2;
+	//float R = 3.0f;
+	//float fi = pi*uvw.x;
+	//float theta = pi2*uvw.y;
+	//float sinFi, cosFi, sinTheta, cosTheta;
+	//sincos(fi, sinFi, cosFi);
+	//sincos(theta, sinTheta, cosTheta);
+	//position = float3(R*sinFi*cosTheta, R*sinFi*sinTheta, R*cosFi);
 
-	//triangle
-	position = uvw.x*bezPatch[0].PosL+uvw.y*bezPatch[1].PosL+uvw.z*bezPatch[2].PosL;
-	dout.PosH = mul(float4(position, 1.0f), gWorldViewProj);
+	////triangle
+	//position = uvw.x*bezPatch[0].PosL+uvw.y*bezPatch[1].PosL+uvw.z*bezPatch[2].PosL;
+	dout.PosH = mul(float4(p, 1.0f), gWorldViewProj);
 
 	return dout;
 }
