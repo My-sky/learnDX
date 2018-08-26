@@ -32,7 +32,7 @@ private:
 	ID3D11Buffer* pBoxIB;
 
 	ID3D11ShaderResourceView* pDiffuseMapSRV;
-	ID3D11ShaderResourceView* pCompositeMapSRV;
+	ID3D11ShaderResourceView* pNormalMapSRV;
 
 	DirectionalLight mDirLights[3];
 	Material mBoxMat;

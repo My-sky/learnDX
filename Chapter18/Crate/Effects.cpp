@@ -40,6 +40,11 @@ BasicEffect::BasicEffect(ID3D11Device* device, const std::wstring& filename)
 	pWorldInvTranspose	= pFX->GetVariableByName("gWorldInvTranspose")->AsMatrix();
 	pTexTransform		= pFX->GetVariableByName("gTexTransform")->AsMatrix();
 	pEyePosW			= pFX->GetVariableByName("gEyePosW")->AsVector();
+	pMinTessDistance	= pFX->GetVariableByName("gMinTessDistance")->AsScalar();
+	pMaxTessDistance	= pFX->GetVariableByName("gMaxTessDistance")->AsScalar();
+	pMinTessFactor		= pFX->GetVariableByName("gMinTessFactor")->AsScalar();
+	pMaxTessFactor		= pFX->GetVariableByName("gMaxTessFactor")->AsScalar();
+	pHeightScale		= pFX->GetVariableByName("gHeightScale")->AsScalar();
 	pDirLights			= pFX->GetVariableByName("gDirLights");
 	pMat				= pFX->GetVariableByName("gMaterial");
 	pDiffuseMap			= pFX->GetVariableByName("gDiffuseMap")->AsShaderResource();

@@ -15,7 +15,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 }
 
 Crate::Crate(HINSTANCE hInstance)
-	:D3DApp(hInstance), pBoxVB(0),pBoxIB(0),pDiffuseMapSRV(0),pCompositeMapSRV(0),
+	:D3DApp(hInstance), pBoxVB(0),pBoxIB(0),pDiffuseMapSRV(0),pNormalMapSRV(0),
 	mEyePosW(0.0f,0.0f,0.0f),mThea(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(2.5f)
 {
 mMainWndCaption = L"Crate Demo";
@@ -50,7 +50,7 @@ Crate::~Crate()
 	ReleaseCOM(pBoxVB);
 	ReleaseCOM(pBoxIB);
 	ReleaseCOM(pDiffuseMapSRV);
-	ReleaseCOM(pCompositeMapSRV);
+	ReleaseCOM(pNormalMapSRV);
 
 	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
@@ -66,8 +66,8 @@ bool Crate::Init()
 
 	D3DX11_IMAGE_LOAD_INFO info;
 	info.MipLevels = 1;
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/flare.dds", &info, 0, &pDiffuseMapSRV, 0));
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/flarealpha.dds", 0, 0, &pCompositeMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks.dds", &info, 0, &pDiffuseMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_nmap.dds", 0, 0, &pNormalMapSRV, 0));
 
 	CreateGeometryBuffers();
 	return true;
@@ -122,7 +122,7 @@ void Crate::DrawScene()
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(InputLayouts::Basic32);
-	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	
 	UINT stride = sizeof(Vertex::Basic32);
 	UINT offset = 0;
@@ -136,6 +136,22 @@ void Crate::DrawScene()
 	//set per frame constants
 	Effects::pBasicFX->SetDirLights(mDirLights);
 	Effects::pBasicFX->SetEyePosW(mEyePosW);
+	Effects::pBasicFX->SetMinTessDistance(25.0f);
+	Effects::pBasicFX->SetMaxTessDistance(1.0f);
+	Effects::pBasicFX->SetMinTessFactor(1.0f);
+	Effects::pBasicFX->SetMaxTessFactor(5.0f);
+	Effects::pBasicFX->SetHeightScale(0.07f);
+
+	//render mode 
+	ID3D11RasterizerState* pWireframeRS;
+	D3D11_RASTERIZER_DESC wireframeDesc;
+	ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+	wireframeDesc.FillMode = D3D11_FILL_WIREFRAME;
+	wireframeDesc.CullMode = D3D11_CULL_BACK;
+	wireframeDesc.FrontCounterClockwise = false;
+	wireframeDesc.DepthClipEnable = true;
+
+	HR(pd3dDevice->CreateRasterizerState(&wireframeDesc, &pWireframeRS));
 
 
 	ID3DX11EffectTechnique* pTech = Effects::pBasicFX->pLight2TexTech;
@@ -156,19 +172,22 @@ void Crate::DrawScene()
 		Effects::pBasicFX->SetWorld(world);
 		Effects::pBasicFX->SetWorldInvTranspose(worldInvTranspose);
 		Effects::pBasicFX->SetWorldViewProject(worldViewProj);
-		Effects::pBasicFX->SetTexTransform(XMLoadFloat4x4(&mTexTransform));
+		Effects::pBasicFX->SetTexTransform(XMMatrixScaling(2.0f, 1.0f, 1.0f));
 		Effects::pBasicFX->SetMaterial(mBoxMat);
 		Effects::pBasicFX->SetDiffuseMap(pDiffuseMapSRV);
-		Effects::pBasicFX->SetCompositeMap(pCompositeMapSRV);
+		Effects::pBasicFX->SetNormalMap(pNormalMapSRV);
 
 		pTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
-
+		
+		//pImmediateContext->RSSetState(pWireframeRS);
 		//36 indices for the Crate
 		pImmediateContext->DrawIndexed(mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
+		//pImmediateContext->RSSetState(0);
+		
 	}
 
 	HR(pSwapChain->Present(0, 0));
-
+	ReleaseCOM(pWireframeRS);
 }
 
 void Crate::OnMouseDown(WPARAM btnState, int x, int y)
@@ -237,9 +256,10 @@ void Crate::CreateGeometryBuffers()
 	std::vector<Vertex::Basic32> vertices(totalVertexCount);
 	for (int i = 0; i < box.Vertices.size(); i++)
 	{
-		vertices[i].Pos		= box.Vertices[i].Position;
-		vertices[i].Normal	= box.Vertices[i].Normal;
-		vertices[i].Tex		= box.Vertices[i].TexC;
+		vertices[i].Pos		 = box.Vertices[i].Position;
+		vertices[i].Normal	 = box.Vertices[i].Normal;
+		vertices[i].TangentU = box.Vertices[i].TangentU;
+		vertices[i].Tex		 = box.Vertices[i].TexC;
 	}
 
 	D3D11_BUFFER_DESC vbd;
