@@ -51,7 +51,7 @@ struct Material
 // later we will modify the individual terms.
 
 void ComputeDirectionalLight(Material mat, DirectionalLight L,
-	float3 normal, float3 toEye,
+	float3 lightPos,float3 normal, float3 toEye,
 	out float4 ambient,
 	out float4 diffuse,
 	out float4 spec)
@@ -62,7 +62,7 @@ void ComputeDirectionalLight(Material mat, DirectionalLight L,
 	spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// The light vector aims opposite the direction the light rays travel.
-	float3 lightVec = -L.Direction;
+	float3 lightVec = -lightPos;
 
 	// Add ambient term.
 	ambient = mat.Ambient * L.Ambient;

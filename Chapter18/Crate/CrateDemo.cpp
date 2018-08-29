@@ -30,15 +30,15 @@ mLastMousePos.x = 0.0;
 mLastMousePos.y = 0.0;
 
 //Directional Light
-mDirLights[0].Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-mDirLights[0].Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-mDirLights[0].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
-mDirLights[0].Direction = XMFLOAT3(0.707f, -0.707f, 0.0f);
+mDirLights.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+mDirLights.Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+mDirLights.Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+mDirLights.Direction = XMFLOAT3(0.707f, -0.707f, 0.0f);
 
-mDirLights[1].Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-mDirLights[1].Diffuse = XMFLOAT4(1.4f, 1.4f, 1.4f, 1.0f);
-mDirLights[1].Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 16.0f);
-mDirLights[1].Direction = XMFLOAT3(-0.707f, 0.0f, 0.707f);
+//mDirLights[1].Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+//mDirLights[1].Diffuse = XMFLOAT4(1.4f, 1.4f, 1.4f, 1.0f);
+//mDirLights[1].Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 16.0f);
+//mDirLights[1].Direction = XMFLOAT3(-0.707f, 0.0f, 0.707f);
 
 mBoxMat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 mBoxMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -51,6 +51,7 @@ Crate::~Crate()
 	ReleaseCOM(pBoxIB);
 	ReleaseCOM(pDiffuseMapSRV);
 	ReleaseCOM(pNormalMapSRV);
+	ReleaseCOM(pHeightMapSRV);
 
 	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
@@ -66,8 +67,9 @@ bool Crate::Init()
 
 	D3DX11_IMAGE_LOAD_INFO info;
 	info.MipLevels = 1;
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks.dds", &info, 0, &pDiffuseMapSRV, 0));
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_nmap.dds", 0, 0, &pNormalMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks.jpg", &info, 0, &pDiffuseMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_normal.jpg", 0, 0, &pNormalMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_disp.jpg", 0, 0, &pHeightMapSRV, 0));
 
 	CreateGeometryBuffers();
 	return true;
@@ -122,7 +124,7 @@ void Crate::DrawScene()
 	pImmediateContext->ClearDepthStencilView(pDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	pImmediateContext->IASetInputLayout(InputLayouts::Basic32);
-	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
 	UINT stride = sizeof(Vertex::Basic32);
 	UINT offset = 0;
@@ -176,6 +178,7 @@ void Crate::DrawScene()
 		Effects::pBasicFX->SetMaterial(mBoxMat);
 		Effects::pBasicFX->SetDiffuseMap(pDiffuseMapSRV);
 		Effects::pBasicFX->SetNormalMap(pNormalMapSRV);
+		Effects::pBasicFX->SetHeightMap(pHeightMapSRV);
 
 		pTech->GetPassByIndex(p)->Apply(0, pImmediateContext);
 		

@@ -90,5 +90,8 @@
     <CustomBuild Include="FX\Basic.fx">
       <Filter>fx</Filter>
     </CustomBuild>
+    <CustomBuild Include="FX\ParallaxMap.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

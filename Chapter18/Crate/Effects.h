@@ -31,7 +31,7 @@ public:
 	void SetWorldInvTranspose(CXMMATRIX M)				{ pWorldInvTranspose->SetMatrix(reinterpret_cast<const float*>(&M)); }
 	void SetTexTransform(CXMMATRIX M)					{ pTexTransform->SetMatrix(reinterpret_cast<const float*>(&M)); }
 	void SetEyePosW(const XMFLOAT3& V)					{ pEyePosW->SetRawValue(&V,0,sizeof(XMFLOAT3)); }
-	void SetDirLights(const DirectionalLight* lights)	{ pDirLights->SetRawValue(lights,0,3*sizeof(DirectionalLight)); }
+	void SetDirLights(const DirectionalLight lights)	{ pDirLights->SetRawValue(&lights,0,sizeof(DirectionalLight)); }
 	void SetMinTessDistance(const float min)			{ pMinTessDistance->SetFloat(min); }
 	void SetMaxTessDistance(const float max)			{ pMaxTessDistance->SetFloat(max); }
 	void SetMinTessFactor(const float minFactor)		{ pMinTessFactor->SetFloat(minFactor); }
@@ -40,6 +40,7 @@ public:
 	void SetMaterial(const Material& mat)				{ pMat->SetRawValue(&mat,0,sizeof(Material)); }
 	void SetDiffuseMap(ID3D11ShaderResourceView* tex)	{ pDiffuseMap->SetResource(tex); }
 	void SetNormalMap(ID3D11ShaderResourceView* tex)    { pNormalMap->SetResource(tex); }
+	void SetHeightMap(ID3D11ShaderResourceView* tex)	{ pHeightMap->SetResource(tex); }
 
 
 
@@ -68,6 +69,8 @@ public:
 
 	ID3DX11EffectShaderResourceVariable* pDiffuseMap;
 	ID3DX11EffectShaderResourceVariable* pNormalMap;
+	ID3DX11EffectShaderResourceVariable* pHeightMap;
+
 };
 #pragma endregion
 

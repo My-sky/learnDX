@@ -33,8 +33,10 @@ private:
 
 	ID3D11ShaderResourceView* pDiffuseMapSRV;
 	ID3D11ShaderResourceView* pNormalMapSRV;
+	ID3D11ShaderResourceView* pHeightMapSRV;
 
-	DirectionalLight mDirLights[3];
+
+	DirectionalLight mDirLights;
 	Material mBoxMat;
 
 	XMFLOAT4X4 mTexTransform;

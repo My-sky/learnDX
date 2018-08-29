@@ -49,6 +49,8 @@ BasicEffect::BasicEffect(ID3D11Device* device, const std::wstring& filename)
 	pMat				= pFX->GetVariableByName("gMaterial");
 	pDiffuseMap			= pFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
 	pNormalMap			= pFX->GetVariableByName("gNormalMap")->AsShaderResource();
+	pHeightMap			= pFX->GetVariableByName("gHeightMap")->AsShaderResource();
+
 }
 
 BasicEffect::~BasicEffect()
@@ -63,7 +65,7 @@ BasicEffect* Effects::pBasicFX = 0;
 
 void Effects::InitAll(ID3D11Device* device)
 {
-	pBasicFX = new BasicEffect(device, L"../shaders/Basic.fxo");
+	pBasicFX = new BasicEffect(device, L"../shaders/ParallaxMap.fxo");
 }
 
 void Effects::DestroyAll()

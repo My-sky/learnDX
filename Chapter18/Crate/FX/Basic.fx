@@ -3,7 +3,7 @@
 
 cbuffer cbPerFrame
 {
-	DirectionalLight gDirLights[3];
+	DirectionalLight gDirLights;
 	float3 gEyePosW;
 
 	float gFogStart;
@@ -29,6 +29,7 @@ cbuffer cbPerObject
 
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
+Texture2D gHeightMap;
 
 SamplerState samAnisotropic
 {
@@ -57,6 +58,7 @@ struct VertexIn
 
 struct VertexOut
 {
+	float4 PosH		: SV_POSITION;
 	float3 PosW		: POSITION;
 	float3 NormalW  : NORMAL;
 	float3 TangentU : TANGENT;
@@ -92,6 +94,7 @@ VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
 
+	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
 	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld).xyz;
 	vout.NormalW = mul(vin.NormalL,(float3x3)gWorldInvTranspose);
 	vout.TangentU = mul(vin.TangentU, (float3x3)gWorld);
@@ -152,7 +155,7 @@ DomainOut DS(float3 uvw:SV_DomainLocation, PatchTess patchTess,const OutputPatch
 	//sample height map 
 	float height = gNormalMap.SampleLevel(samLinear, dout.Tex, MipLevel).a;
 
-	dout.PosW += gHeightScale*(height - 1.0f);// *dout.Normal;
+	dout.PosW += gHeightScale*(3.0f - 1.0f);// *dout.Normal;
 
 	dout.PosH = mul(float4(dout.PosW, 1.0f), gWorldViewProj);
 	return dout;
@@ -172,11 +175,11 @@ float3 ConverNormalToWorldSpace(float3 normal, float3 normalW, float3 tangentW)
 	return normalWS;
 }
 
-float4 PS(DomainOut pin,uniform int gLightCount,uniform bool gUseTexture) :SV_Target
+float4 PS(VertexOut pin,uniform int gLightCount,uniform bool gUseTexture) :SV_Target
 {
 	
 	//normalize the normal vector
-	pin.Normal = normalize(pin.Normal);
+	pin.NormalW = normalize(pin.NormalW);
 
 	float3 toEyeW = normalize(gEyePosW - pin.PosW);
 
@@ -193,7 +196,7 @@ float4 PS(DomainOut pin,uniform int gLightCount,uniform bool gUseTexture) :SV_Ta
 	//lighting
 	float4 lightColor = texColor;
 	float3 normalMap = gNormalMap.Sample(samLinear, pin.Tex).xyz;
-	float3 normal = ConverNormalToWorldSpace(normalMap, pin.Normal, pin.TangentU);
+	float3 normal = ConverNormalToWorldSpace(normalMap, pin.NormalW, pin.TangentU);
 
 	if (gLightCount > 0)
 	{
@@ -207,7 +210,7 @@ float4 PS(DomainOut pin,uniform int gLightCount,uniform bool gUseTexture) :SV_Ta
 		for (int i = 0; i < gLightCount; i++)
 		{
 			float4 A, D, S;
-			ComputeDirectionalLight(gMaterial, gDirLights[i], normal, toEyeW, A, D, S);//pin.NormalW
+			ComputeDirectionalLight(gMaterial, gDirLights,gDirLights.Direction, normal, toEyeW, A, D, S);//pin.NormalW
 			ambient += A;
 			diffuse += D;
 			spec += S;
@@ -225,8 +228,8 @@ technique11 Light2Tex
 	pass P0
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetHullShader(CompileShader(hs_5_0, HS()));
-		SetDomainShader(CompileShader(ds_5_0, DS()));
-	    SetPixelShader(CompileShader(ps_5_0, PS(2,true)));
+		//SetHullShader(CompileShader(hs_5_0, HS()));
+		//SetDomainShader(CompileShader(ds_5_0, DS()));
+	    SetPixelShader(CompileShader(ps_5_0, PS(1,true)));
 	}
 }
