@@ -1,6 +1,7 @@
 
 #include "lightingHelper.fx"
 
+
 cbuffer cbPerFrame
 {
 	DirectionalLight gDirLights;
@@ -118,9 +119,18 @@ float2 ParallaxMapping(float2 tex, float3 viewDir)
 	while (currentDepth < currentHeight)
 	{
 		currentDepth += layerStep;
-		currentTex = tex - p*currentDepth / viewDir.z;// deltTexCoords;
+		currentTex -= deltTexCoords;//tex - p*currentDepth / viewDir.z;
 		currentHeight = gHeightMap.Sample(samLinear, currentTex).r;
 	}
+	float prevDepth = currentDepth-layerStep;
+	float2 prevTex = currentTex + deltTexCoords;//tex - p*prevDepth / viewDir.z
+	float prevHeight = gHeightMap.Sample(samLinear, prevTex).r;
+
+	float currWeight = currentDepth - currentHeight;
+	float prevWeight = prevHeight - prevDepth;
+	float weight = currWeight / (currWeight + prevWeight);
+	currentTex = weight*prevTex + (1.0f - weight)*currentTex;
+
 	return currentTex;
 	
 	//common parallax Mapping

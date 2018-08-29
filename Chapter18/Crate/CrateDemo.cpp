@@ -67,9 +67,9 @@ bool Crate::Init()
 
 	D3DX11_IMAGE_LOAD_INFO info;
 	info.MipLevels = 1;
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks.jpg", &info, 0, &pDiffuseMapSRV, 0));
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_normal.jpg", 0, 0, &pNormalMapSRV, 0));
-	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/bricks_disp.jpg", 0, 0, &pHeightMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/wood.png", &info, 0, &pDiffuseMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/toy_box_normal.png", 0, 0, &pNormalMapSRV, 0));
+	HR(D3DX11CreateShaderResourceViewFromFile(pd3dDevice, L"Texture/toy_box_disp.png", 0, 0, &pHeightMapSRV, 0));
 
 	CreateGeometryBuffers();
 	return true;
